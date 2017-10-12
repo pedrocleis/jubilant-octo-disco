@@ -1,0 +1,49 @@
+(declare-const limit Int)
+(declare-fun S (Int) Bool)
+
+(assert (forall ( (n Int) )
+        ( => (> n limit) (not (S n)))
+        ))
+
+(declare-const max_protocol_session Int)
+(declare-fun P (Int Int) Bool)
+
+(assert (forall  (  (n Int) (m Int) )
+        ( => (> n limit) (not (P n m)))
+))
+
+(assert (forall  (  (n Int) (m Int) )
+        ( => (> m max_protocol_session) (not (P n m)))
+))
+
+(declare-fun q)
+
+(declare-fun rss (Int Int) Bool)
+(declare-fun rii (Int Int) Bool)
+
+
+(assert (forall  ((i Int) (n1 Int) (n2 Int))
+		 (=> (and (rss i n1) (rss i n2)) (= n1 n2))
+))
+
+(assert (forall ( (n Int))
+	(=> (rss 0 n) (>= n 0) )
+))
+
+(assert (forall  ((i Int) (n1 Int) (n2 Int))
+		 (=> (and (rii i n1) (rii i n2)) (= n1 n2))
+))
+
+(assert (forall ( (n Int))
+	(=> (rii 0 n) (>= n 0) )
+))
+
+(declare-fun time (Int Real) Bool)
+(assert ( forall ( (i Int) (r1 Real) (r2 Real))
+        ( => (and (time i r1) (time i r2))  (= r1 r2))
+))
+
+(declare-fun recovery (Int Int Real) Bool)
+
+
+(check-sat)

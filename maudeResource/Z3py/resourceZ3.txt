@@ -1,0 +1,69 @@
+S : Int Bool
+
+n > limit  => not S(n) 
+
+Protocol Session
+P : Int Int Bool [configuração {1 - limit}, instâncias {1 - max_protocol_session} ]
+constant max_protocol_session [delimitar a quantidade de instâncias] 
+--- o estado zero não existe
+
+n > limit  => not P(n) 
+n > limit  => not q(n,i) 
+(ditto)
+
+q : Int Int Int Bool  [configuração, instâncias, estado ]--- representando um estado [0,numero de estados do automata]
+rp : Int Int Int Bool
+n : Int Int Int Bool
+timeout : Int Int Real Bool [timeout do protocolo]
+--- o estado zero não existe
+
+
+---------------------------------------- DEPRECATED BEGIN-----------------------------------------------------------
+state : Int Int Bool
+resource : Int Int Bool
+
+state(i,n1) and state(i,n2) => n1 = n2
+resource(i,n1) and resource(i,n2) => n1 = n2 
+instances(i,n1) and instances(i,n2) => n1 = n2 
+
+P(i) => state(0,q0)
+P0 => resource(0,rp0)
+P0 => instances(0,n0)
+----------------------------------------- DEPRECATED END--------------------------------------------------------------
+
+rss : Int Int Bool
+
+rss(0,n) => n >= 0
+rss(i,n1) and rss(i,n2) => n1 = n2
+
+ditto para rii
+
+
+rec : Int Int Real Bool [mensagem de recuperação] [Conf, Resources, Tempo]
+
+constant- max_recovery_recovery
+
+ditto sobre unicidade para resources e timeout
+
+time : Int Real Bool
+time(i,r1) and time(i,r2) => r1 = r2
+{forçar o timeout a ser contabilizado, assim como o rec}
+
+trans Bool Bool Bool
+
+{delimitar as variáveis quando for executar, do estado inicial}
+
+trans : Int Int Bool .
+
+trans(S(i),S(j)) <=> S(i) and S(j) and (i neq j) {funções de transição, conectar usando xor}
+and 
+regras
+
+{criar protocolo : se estiver com estado 0, posso instanciá-lo se estiver disponível a quantidade de recursos}
+{não pode existir o caso em que existe }
+
+Problem
+
+time(limite) - time(10) >= DurMin
+
+rss(11,r1) ... rss(limite,rlimite) => r1 <= Rmin and .... and rlimite <= RMin

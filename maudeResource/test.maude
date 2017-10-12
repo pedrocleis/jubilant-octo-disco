@@ -1,0 +1,80 @@
+mod Test is
+inc SLOWLORIS .
+
+ops conf conf2 : -> Config .
+
+eq conf = ([S(0),5 | px(PR(1), ND(0), rr(7), 0) | PR(1) | rr(32)] [SC(0),37,1 |
+    none | msg(tt(12) + tw(1) ; PR(1),0 <- timeout(rr(36), rr(34))) msg(tt(12) + tw(4)
+    ; PR(1),0 <- recover(I(0), rr(33)))] [I(0),8 | px(PR(1), ND(0), rr(7), 0) | PR(1) |
+    rr(31) | tw(4)]) ! tt(12) ! depleted(S(0), rr(6) ; rr(11) ; rr(18) ; rr(25) ; rr(
+    32), tt(5)) ! tt(10) + tw(1) > tt(12) and (tt(12) >= (0/1).Real and (tt(12) >= tt(
+    11) and (tt(11) < tt(10) + tw(1) and (tt(11) >= (0/1).Real and (tt(11) >= tt(10)
+    and (tt(11) >= tt(10) + tw(4) and (tt(8) + tw(1) > tt(10) and (tt(10) >= (0/1).Real
+    and (tt(10) >= tt(9) and (tt(9) < tt(8) + tw(1) and (tt(9) >= (0/1).Real and (tt(9)
+    >= tt(8) and (tt(9) >= tt(8) + tw(4) and (tt(6) + tw(1) > tt(8) and (tt(8) >= (
+    0/1).Real and (tt(8) >= tt(7) and (tt(7) < tt(6) + tw(1) and (tt(7) >= (0/1).Real
+    and (tt(7) >= tt(6) and (tt(7) >= tt(6) + tw(4) and (tt(5) + tw(1) > tt(6) and (tt(
+    6) >= (0/1).Real and (tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4)
+    and (tt(4) >= (0/1).Real and (tw(4) === (10/1).Real and (tw(1) === (12/1).Real and
+    (tw(2) === (100/1).Real and (tw(3) === (100/1).Real and
+    true)))))))))))))))))))))))))))))) ! (rr(33) === rr(2) * rr(7) and (rr(34) === rr(
+    2) * rr(7) and (rr(30) + rr(27) - rr(33) - rr(34) === rr(31) and (rr(31) >= (
+    0).Integer and (rr(35) === rr(2) * rr(7) and (rr(36) === rr(1) * rr(7) and (rr(25)
+    + rr(29) - rr(35) - rr(36) === rr(32) and (rr(32) >= (0).Integer and (rr(24) + rr(
+    26) === rr(30) and (rr(26) === rr(2) * rr(7) and (rr(27) === rr(2) * rr(7) and (rr(
+    23) + rr(20) - rr(26) - rr(27) === rr(24) and (rr(24) >= (0).Integer and (rr(28)
+    === rr(2) * rr(7) and (rr(29) === rr(1) * rr(7) and (rr(18) + rr(22) - rr(28) - rr(
+    29) === rr(25) and (rr(25) >= (0).Integer and (rr(17) + rr(19) === rr(23) and (rr(
+    19) === rr(2) * rr(7) and (rr(20) === rr(2) * rr(7) and (rr(16) + rr(13) - rr(19) -
+    rr(20) === rr(17) and (rr(17) >= (0).Integer and (rr(21) === rr(2) * rr(7) and (rr(
+    22) === rr(1) * rr(7) and (rr(11) + rr(15) - rr(21) - rr(22) === rr(18) and (rr(18)
+    >= (0).Integer and (rr(10) + rr(12) === rr(16) and (rr(12) === rr(2) * rr(7) and (
+    rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13) === rr(10) and (rr(
+    10) >= (0).Integer and (rr(14) === rr(2) * rr(7) and (rr(15) === rr(1) * rr(7) and
+    (rr(6) + rr(9) - rr(14) - rr(15) === rr(11) and (rr(11) >= (0).Integer and (rr(7) >
+    (0).Integer and (rr(8) === rr(1) * rr(7) and (rr(3) - rr(8) === rr(5) and (rr(5) >=
+    (0).Integer and (rr(9) === rr(1) * rr(7) and (rr(4) - rr(9) === rr(6) and (rr(6) >=
+    (0).Integer and (rr(1) === (1).Integer and (rr(2) === (0).Integer and (rr(3) === (
+    100).Integer and (rr(4) === (100).Integer and
+    true)))))))))))))))))))))))))))))))))))))))))))))) .
+
+ op msgs : -> MsgS .
+ eq msgs = msg(tt(6) + tw(1) ; PR(1),0 <- timeout(rr(15), rr(13))) msg(tt(6) +
+    tw(4) ; PR(1),0 <- recover(I(0), rr(12))) .
+ 
+ ops boo boo2 : -> Boolean .
+ eq boo = tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) + tw(2)
+    and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (tt(6) >= tt(5) and (
+    tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(4) ===
+    (10/1).Real and (tw(1) === (12/1).Real and (tw(2) === (1/1).Real and (tw(3) ===
+    (30/1).Real and true)))))))))))) .
+
+ eq boo2 = ((tt(7) - tt(5) >= tw(3)) and boo) .
+
+endm
+
+***(
+
+srewrite[1] in SLOWLORIS : initSlow5 using pstart ; pcontinue ; buff ; irecover ; srecover  .
+
+red metaCheck(['EXE], toVarsB(advanceTime(tt(7),msgs,boo))) .
+
+
+tt(7) - tt(5) >= tw(3) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6)
+    and (tt(7) >= tt(6) + tw(2) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real
+    and (tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >=
+    (0/1).Real and (tw(4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2) ===
+    (1/1).Real and (tw(3) === (30/1).Real and (true).Boolean)))))))))))))
+
+
+
+
+
+
+
+
+
+
+
+
+)

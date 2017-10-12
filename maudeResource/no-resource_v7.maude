@@ -1,0 +1,1040 @@
+load smt
+
+fmod SYM-REAL is
+  pr REAL .
+  pr REAL-INTEGER .
+
+  vars tt1 tt2 tt3 : TimeSym .
+  vars tr1 tr2 tr0 : TSymReal .
+  var r : Real .
+  var b : Boolean .
+
+  sort TimeSym TSymReal .
+  subsort TimeSym Real < TSymReal .
+
+  op _<=_ : TSymReal TSymReal -> Boolean  [ditto] .
+  op _>=_ : TSymReal TSymReal -> Boolean  [ditto] .
+  op _>_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _<_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _===_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _=/==_ : TSymReal TSymReal -> Boolean [ditto] .
+
+  op -_ : TSymReal -> TSymReal [ditto] .
+  op _+_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _*_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _-_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _/_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _?_:_ : Boolean TSymReal TSymReal -> TSymReal [ditto] .
+
+  op toReal : TimeSym -> TSymReal [ctor] .
+  op toInt : TSymReal -> TimeSym [ctor] .
+
+  op tsubr : TimeSym TSymReal TSymReal -> TSymReal .
+  op tsubb : TimeSym TSymReal Boolean -> Boolean .
+
+  eq tsubr(tt1,tr0,tt1) = tr0 .
+  eq tsubr(tt1,tr0,- tr1) = - tsubr(tt1,tr0,tr1) .
+  eq tsubr(tt1,tr0,tr1 + tr2) =
+       tsubr(tt1,tr0,tr1) + tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 * tr2) =
+       tsubr(tt1,tr0,tr1) * tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 - tr2) =
+       tsubr(tt1,tr0,tr1) - tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 / tr2) =
+       tsubr(tt1,tr0,tr1) / tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,b ? tr1 : tr2) =
+       tsubb(tt1,tr0,b) ?
+         tsubr(tt1,tr0,tr1) : tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,toReal(toInt(tr1))) =
+     toReal(toInt(tsubr(tt1,tr0,tr1))) .
+  eq tsubr(tt1,tr0,tr1) = tr1 [owise] .
+
+  eq tsubb(tt1,tr0,tr1 <= tr2) =
+    tsubr(tt1,tr0,tr1) <= tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 >= tr2) =
+    tsubr(tt1,tr0,tr1) >= tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 > tr2) =
+    tsubr(tt1,tr0,tr1) > tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 === tr2) =
+    tsubr(tt1,tr0,tr1) === tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 =/== tr2) =
+    tsubr(tt1,tr0,tr1) =/== tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,b) = b [owise] .
+
+    --- Assuming that r is positive!
+  op simplify : Boolean -> Boolean .
+  eq simplify(false and b) = false .
+  eq simplify((tt1 > tt1 + r) and b) = false .
+  eq simplify((tt1 >= tt1 + r) and b) = false .
+  eq simplify((tt1 + r < tt1) and b) = false .
+  eq simplify((tt1 + r <= tt1) and b) = false .
+  eq simplify((tt1 === tt1 + r) and b) = false .
+  eq simplify((tt1 <= tt1 + r) and b) = simplify(b) .
+  eq simplify((tt1 < tt1 + r) and b) = simplify(b) .
+  eq simplify((tt1 + r > tt1) and b) = simplify(b) .
+  eq simplify((tt1 + r >= tt1) and b) = simplify(b) .
+  eq simplify((tt1 === tt1) and b) = simplify(b) .
+  eq simplify((tt1 === tt2 + 0/1) and b) = simplify((tt1 === tt2) and b) .
+  eq simplify((tt1 >= tt2 + 0/1) and b) = tt1 >= tt2 and b .
+  eq simplify((tt1 > tt2 + 0/1) and b) = tt1 > tt2 and b .
+  eq simplify((tt1 >= tt2 + r) and (tt1 >= tt2) and b) =
+             (tt1 >= tt2 + r) and b .
+  eq simplify((tt1 >= tt2) and (tt1 >= tt2 + r) and b) =
+             (tt1 >= tt2 + r) and b .
+
+  eq simplify(b) = b [owise] .
+
+
+endfm
+
+
+fmod SYM-INTEGER is
+  pr INTEGER .
+  pr REAL-INTEGER .
+
+  vars rr1 rr2 rr3 : RSym .
+  vars ri1 ri2 ri3 : RSymInt .
+  var int : Integer .
+  var b : Boolean .
+
+  sorts RSym RSymInt RSymIntL .
+  subsort RSym Integer < RSymInt .
+  subsort RSymInt < RSymIntL .
+  op nil : -> RSymIntL [ctor] .
+  op _;_ : RSymIntL RSymIntL -> RSymIntL [ctor assoc id: nil] .
+
+  op _<=_ : RSymInt RSymInt -> Boolean  [ditto] .
+  op _>=_ : RSymInt RSymInt -> Boolean  [ditto] .
+  op _>_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _<_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _===_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _=/==_ : RSymInt RSymInt -> Boolean [ditto] .
+
+  op -_ : RSymInt -> RSymInt [ditto] .
+  op _+_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _*_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _-_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _div_ : RSymInt RSymInt -> RSymInt [ditto] .
+  ---op _mod_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _?_:_ : Boolean RSymInt RSymInt -> RSymInt [ditto] .
+
+endfm
+
+fmod CONFIG is
+  inc SYM-REAL .
+  inc SYM-INTEGER .
+  pr NAT .
+  inc STRING .
+
+
+--- Service, Intruder, Scheduler and Player identifier
+  sorts Sid Iid SchdId Pid .
+  subsort Sid Iid SchdId < Pid .
+  op S : Nat -> Sid [ctor] .
+  op I : Nat -> Iid [ctor] .
+  op SC : Nat -> SchdId [ctor] .
+
+  sort Prid . --- Protocol identifier
+  sort PridS .
+  subsort Prid < PridS .
+  op none : -> PridS [ctor] .
+  op __ : PridS PridS -> PridS [ctor assoc comm id: none] .
+
+  sort Nid . --- Node Identifier
+  op PR : Nat -> Prid [ctor] .
+  op ND : Nat -> Nid [ctor] .
+
+  op rr : Nat -> RSym .
+  op tt : Nat -> TimeSym .
+  op tw : Nat -> TimeSym .
+  op cur : -> TimeSym .
+
+
+--- Resources
+  sort Rid .
+  op R : Nat -> Rid [ctor] .
+
+  sort Resource ResourceS .
+  subsort Resource < ResourceS .
+  op res : Rid Nat -> Resource  [ctor] . --- identifier and amount of the resource
+  op none : -> ResourceS [ctor] .
+  op __ : ResourceS ResourceS -> ResourceS [ctor assoc comm id: none] .
+
+--- Messages (Using Sort for now)
+  sorts Msg MsgS .
+  subsort Msg < MsgS .
+  op none : -> MsgS [ctor] .
+  op __ : MsgS MsgS -> MsgS [ctor assoc comm id: none] .
+  op msg(_;_,_<-_) : TSymReal Prid Nat Event -> Msg [ctor] .
+
+  op getTime : Msg -> TSymReal .
+  eq getTime(msg(t:TSymReal ; pid:Prid,n:Nat <- ev:Event)) = t:TSymReal .
+
+--- Events
+  sort Event .
+  op recover : Pid RSymInt -> Event [ctor] .
+  op consume : RSymInt TSymReal -> Event [ctor] .
+  op timeout : RSymInt RSymInt -> Event [ctor] .
+
+--- Protocols  *** version_2
+  sorts Node NodeS .
+  subsort Node < NodeS .
+  op none : -> NodeS [ctor] .
+  op __ : NodeS NodeS -> NodeS [ctor assoc comm id: none] .
+  op q(_?_,_;_) : Nid RSymInt RSymInt TSymReal -> Node [ctor] .
+
+  sort NTransition NTransitionS .
+  subsort NTransition < NTransitionS .
+  op none : -> NTransitionS [ctor] .
+  op __ : NTransitionS NTransitionS -> NTransitionS [ctor assoc comm id: none] .
+  op <_?_,_;_->_ > : Nid RSymInt RSymInt TSymReal Nid -> NTransition [ctor] .
+  ---  < N1 ? R1, R2 ; T1, T2 --> N2   >
+
+  op complete : -> Nid [ctor] .
+  op protInit : Prid -> Node [ctor] .
+  op protTransitions : Prid -> NTransitionS [ctor] .
+  op protNodes : Prid -> NodeS .
+  op protNode : Nid NodeS -> Node .
+  op protComplete : Prid -> Nid [ctor] .
+
+  eq protNode(nid:Nid,  q(nid:Nid ? rs1:RSymInt, rs2:RSymInt ; T:TSymReal) nds:NodeS) = q(nid:Nid ? rs1:RSymInt, rs2:RSymInt ; T:TSymReal) .
+
+  sort PExec . --- Protocol Execution
+  sort PExecS .
+  subsort PExec < PExecS .
+  op none : -> PExec [ctor] .
+  op __ : PExecS PExecS -> PExecS [ctor assoc comm id: none] .
+  op px : Prid Nid RSymInt Nat  -> PExec [ctor] .
+
+--- Players
+  sorts Service Intruder  Scheduler Player .
+  subsort Service Intruder Scheduler < Player .
+  op [_,_|_|_|_] : Sid Nat PExecS PridS RSymInt -> Service [ctor] .
+  --- id counter timeout resources
+  op [_,_|_|_|_|_] : Iid Nat PExecS PridS RSymInt TimeSym -> Intruder [ctor] .
+  --- id counter recovery actions and resources
+--- Scheduler
+  op [_,_,_|_|_] : SchdId Nat Nat MsgS MsgS -> Scheduler [ctor] .
+  op getMsg1 : Scheduler -> MsgS .
+  op getMsg2 : Scheduler -> MsgS .
+  eq getMsg1([s:SchdId,n:Nat,m:Nat | msgs:MsgS | msgs2:MsgS ]) = msgs:MsgS .
+  eq getMsg2([s:SchdId,n:Nat,m:Nat | msgs:MsgS | msgs2:MsgS ]) = msgs2:MsgS .
+
+--- Configuration
+  sort PlayerConf .
+  subsort Player < PlayerConf .
+  op none : -> PlayerConf [ctor] .
+  op __ : PlayerConf PlayerConf -> PlayerConf [ctor assoc comm id: none] .
+
+  sort Marker MSet .
+  subsort Marker < MSet .
+  op none : -> MSet [ctor] .
+  op __ : MSet MSet -> MSet [ ctor assoc comm id: none ] .
+
+  op depleted : Sid RSymIntL TSymReal -> Marker [ctor] .
+
+  sort Config .
+  op _!_!_!_!_ : PlayerConf TimeSym MSet Boolean Boolean -> Config [ctor] .
+
+
+endfm
+
+mod META-TIME is
+  inc CONFIG .
+  inc META-LEVEL .
+  inc CONVERSION .
+
+  vars tr1 tr2 : TSymReal .
+  vars rr1 rr2 : RSymInt .
+  vars b1 b2 b : Boolean .
+  vars i : Nat .
+  vars tr res confT tcT : Term .
+  vars res? : [ResultPair] .
+  vars res1? : [ResultTriple] .
+  var tl : TermList .
+  var md : Module .
+  vars n n1 : Nat .
+  var bl : Bool .
+
+  op mkTimeSymVar : Nat -> Term .
+  eq mkTimeSymVar(i) = qid("rv" + string(i,10) + ":Real") .
+
+  op mkRSymVar : Nat -> Term .
+  eq mkRSymVar(i) = qid("iv" + string(i,10) + ":Integer") .
+
+  op toVarsR : TSymReal -> Term .
+  op toVarsB : Boolean -> Term .
+  op toVarsI : RSymInt -> Term .
+
+ eq toVarsR(r:Real) = upTerm(r:Real) .
+ eq toVarsR(tt(i)) = mkTimeSymVar(i) .
+ eq toVarsR(tw(i)) = mkTimeSymVar(i + 10000) .
+ eq toVarsR(- tr1) = '-_[toVarsR(tr1)] .
+ eq toVarsR(tr1 + tr2) = '_+_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 * tr2) = '_*_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 - tr2) = '_-_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 / tr2) = '_/_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(b ? tr1 : tr2) = '_?_:_[toVarsB(b),toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(toReal(toInt(tr1))) = 'toReal['toInteger[toVarsR(tr1)]] .
+
+ eq toVarsI(int:Integer) = upTerm(int:Integer) .
+ eq toVarsI(rr(i)) = mkRSymVar(i) .
+ eq toVarsI(- rr1) = '-_[toVarsI(rr1)] .
+ eq toVarsI(rr1 + rr2) = '_+_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 * rr2) = '_*_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 - rr2) = '_-_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 div rr2) = '_div_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(b ? rr1 : rr2) = '_?_:_[toVarsB(b),toVarsI(rr1),toVarsI(rr2)] .
+
+ eq toVarsB(b) = upTerm(b) [owise] .
+
+ eq toVarsB(tr1 <= tr2) = '_<=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 >= tr2) = '_>=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 < tr2) = '_<_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 > tr2) = '_>_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 === tr2) = '_===_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 =/== tr2) = '_=/==_[toVarsR(tr1),toVarsR(tr2)] .
+
+ eq toVarsB(rr1 <= rr2) = '_<=_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 >= rr2) = '_>=_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 < rr2) = '_<_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 > rr2) = '_>_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 === rr2) = '_===_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 =/== rr2) = '_=/==_[toVarsI(rr1),toVarsI(rr2)] .
+
+ eq toVarsB(b1 and b2) = '_and_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 or b2) = '_or_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 xor b2) = '_xor_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 implies b2) = '_implies_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 === b2) = '_===_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 =/== b2) = '_=/==_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b ? b1 : b2) = '_?_:_[toVarsB(b),toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(not b1) = 'not_[toVarsB(b1)] .
+
+endm
+
+mod EXE is
+  inc META-TIME .
+
+  var iid : Iid .
+  var sid : Sid .
+  var pid : Pid .
+  var sc : SchdId .
+  var schd : Scheduler .
+  var resS : ResourceS .
+  var r1 r2 : Rid .
+  vars i j k l m n n1 n2 n3 band worker : Nat .
+  vars b b' b2 b2' b3 b3' b3'' b4 b4' b4'' : Boolean .
+  vars timeoutT recovery delay T T1 T2 T3 TRec tNew tOld : TSymReal .
+  vars rs1 rs2 rs3 rs4 rs' rs'' rs1' rsm rSym instances rs3k rs2k rs4k rs5k : RSymInt .
+  vars msg2 msg3 msg1 : Msg .
+  vars msgs msgs2 : MsgS .
+  var pc pc' : PlayerConf .
+  var evt : Event .
+  var conf : Config .
+  vars pxs pxs' : PExecS .
+  vars nds nds' : NodeS .
+  vars str str' str'' : String .
+  var prid : Prid .
+  vars prids prids' : PridS .
+  vars nid nid2 nid3 : Nid .
+  var bl : Bool .
+  var mk : Marker .
+  var mks mks' mks'' : MSet .
+  var trsn : NTransitionS .
+  var rsil : RSymIntL .
+
+op rMin : -> Integer .
+op putMarker : Config -> MSet .
+
+ceq putMarker( [ sid, i | pxs' | prids' | rs1 ] pc ! T ! none ! b ! b2 ) = depleted(sid, rs1, T)
+if b3' := ( (rs1 <= rMin) and (b2))
+/\ b3 := simplify(b3')
+/\ metaCheck(['EXE], toVarsB( b3 )) .
+
+ceq putMarker( [sid, i | pxs' | prids' | rs1] pc ! T ! depleted(sid, rsil ,T1) ! b ! b2 ) = depleted(sid, rsil ; rs1 ,T1)
+if b3' := toBoolean( rsil ; rs1, b2)
+/\ b3 := simplify(b3')
+/\ metaCheck(['EXE], toVarsB( b3)) .
+
+eq putMarker( pc ! T ! mks ! b ! b2) = none [owise] .
+
+op toBoolean : RSymIntL Boolean -> Boolean .
+eq toBoolean( rs1 ; rsil , b ) = toBoolean( rsil, ((rs1 <= rMin) and (b))) .
+eq toBoolean( nil, b) = b .
+
+op advanceTime : TimeSym MsgS Boolean -> Boolean .
+eq advanceTime(tNew,msg1 msgs,b) = (tNew < getTime(msg1)) and advanceTime(tNew,msgs,b) .
+eq advanceTime(tNew,none,b) = b .
+
+op numPxs : PExecS -> Nat .
+eq numPxs(none) = 0 .
+eq numPxs(px:PExec pxs) = s(numPxs(pxs)) .
+
+op numMsgs : MsgS -> Nat .
+eq numMsgs(none) = 0 .
+eq numMsgs(msg1 msgs) = s(numMsgs(msgs)) .
+
+op remTimeOut : Prid MsgS  -> MsgS .
+eq remTimeOut(prid, msg(t:TSymReal ; prid , n1 <- timeout(rs1,rs2)) msgs2) = msgs2 .
+eq remTimeOut(prid, msgs2) = msgs2 [owise] .
+
+--- timeout(rs1, rs2) indicates that, when the protocol finishes, the server recover rs1 resourcers, and the client rs2 .
+crl[pstart] :
+    [iid, j | pxs  | prid prids |  rr(l) | TRec ]
+    [sid, i | pxs' | prid prids' | rr(m) ]
+    [sc, k, n1 | none | msgs2 ]
+    pc ! tt(n) ! mks ! b ! b2
+    =>
+    [ iid, s j | px(prid, nid, rr(s s k), n1) pxs | prid prids | rr(k) | TRec]
+    [ sid, s i | px(prid, nid, rr(s s k), n1) pxs | prid prids' | rr(s k)]
+    [sc, s s s s s k, s n1 | none | msgs2
+    msg( tt(s n) + timeoutT ; prid , n1 <- timeout( rr(s s s s k), rr(s s s k) ) ) ]
+    pc ! tt(s n) ! mks' ! b3 ! b4
+    if q(nid ? rs1, rs2 ; timeoutT ) := protInit(prid)
+    --- /\ numPxs(pxs) < 1
+    /\ ((numPxs(pxs) >= 1 and numMsgs(msgs2) >= 1) or n == 4)
+    /\ b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and (b)))
+    /\ b3'' := advanceTime(tt(s n),msgs2,b3')
+    --- /\ b3'' := b3'
+    /\ b3 := simplify(b3'')
+    /\ b4' :=  ( ( rr(s s k) > 0) and
+               ( ( rr(s s s k) === rs2 * rr(s s k) ) and
+               ( ( rr(l) - rr(s s s k) === rr(k) ) and
+               ( ( rr(k) >= 0 ) and
+               ( ( rr(s s s s k) === rs1 * rr(s s k) ) and
+               ( ( rr(m) - rr(s s s s k) === rr(s k) )  and
+               (  (rr( s k) >= 0) and (b2))))))))
+    /\ b4 := simplify(b4')
+    /\ metaCheck(['EXE], toVarsB(b4))
+    /\ metaCheck(['EXE], toVarsB(b3))
+    /\ mks' := putMarker(     [ iid, s j | px(prid, nid, rr(s s k), n1) pxs | prid prids | rr(k) | TRec]
+                              [ sid, s i | px(prid, nid, rr(s s k), n1) pxs | prid prids' | rr(s k)]
+                              [sc, s s s s s k, s n1 | none | msgs2
+                              msg( tt(s n) + timeoutT ; prid , n1 <- timeout( rr(s s s s k), rr(s s s k) ) ) ]
+                              pc ! tt(s n) ! mks ! b3 ! b4  ) .
+
+crl[pcontinue] :
+  [iid, j | px(prid, nid, instances, n1) pxs | prids |   rr(l) | TRec ]
+  [sid, i | px(prid, nid, instances, n1) pxs' | prids' | rr(m) ]
+  [sc, k, n2 | none | msgs2 msg(T ; prid , n1 <- timeout(rs', rs'') ) ]
+  pc ! tt(n) ! mks ! b ! b2
+  =>
+  [iid, s j | px(prid, nid2, instances, n1) pxs | prids | rr(k) | TRec ]
+  [sid, s i | px(prid, nid2, instances, n1) pxs' | prids' | rr( s k) ]
+  [sc, s s s s s s k, n2 | none | msgs2
+  msg( tt(s n) + timeoutT ; prid , n1 <- timeout(rr(s s s s s k), rr(s s s k)))
+  --- msg( tt(s n) + T1 ; prid , n1 <- recover( sid, rr(s s s s k)))
+  msg( tt(s n) + TRec ; prid , n1 <- recover( iid, rr(s s k))) ]
+  pc ! tt(s n) ! mks' ! b3 ! b4
+  if  < nid ? rs1, rs2 ; T1 -> nid2 > trsn  := protTransitions(prid)
+  /\  q(nid2 ? rs3, rs4 ; timeoutT) nds := protNodes(prid)
+  /\ b3' := (T > tt(s n) and ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n))  and (b))))
+  /\ b3'' := advanceTime(tt(s n),msgs2,b3')
+  --- /\ b3'' := b3'
+  /\ b3 := simplify(b3'')
+  /\ b4' :=  ( ( rr(s s k) === rs2 * instances ) and
+             ( ( rr(s s s k) === rs4 * instances ) and
+             ( ( rr(l) + rs'' - rr(s s k) - rr(s s s k) === rr(k) ) and
+             ( ( rr(k) >= 0 )  and
+             ( ( rr( s s s s k) === rs1 * instances  ) and
+             ( ( rr( s s s s s k) === rs3 * instances ) and
+             ( ( rr(m) + rs' - rr( s s s s k) - rr(s s s s s k) === rr(s k)  ) and
+             (  (rr(s k) >= 0) and (b2)))))))))
+  /\ b4 := simplify(b4')
+  /\ metaCheck(['EXE], toVarsB(b4))
+  /\ metaCheck(['EXE], toVarsB(b3))
+  /\ mks' := putMarker( [sid, s i | px(prid, nid2, instances, n1) pxs' | prids' | rr( s k) ]
+                           pc ! tt(s n) ! mks ! b3 ! b4   ) .
+
+crl[ptimeout]:
+    [iid, j | px(prid, nid, rSym, n1) pxs | prids | rr(l) | TRec ]
+    [sid, i | px(prid, nid, rSym, n1) pxs' | prids' | rr(m) ]
+    [sc, k, n2 | msgs msg(T ; prid , n1 <- timeout(rs1, rs2)) | msgs2 ]
+    pc ! tt(n) ! mks ! b ! b2
+    =>
+    [iid, s j | pxs | prids |   rr(k) | TRec]
+    [sid, s i | pxs' | prids' | rr(s k) ]
+    [sc, s s k, n2 | msgs | msgs2 ] pc ! tt(n) ! mks' ! b ! b4
+    if b4' := ( ( rr(m) + rs1  === rr(s k) ) and  ( ( rr(l) + rs2 ===  rr(k) )  and  (b2)))
+    /\ (numMsgs(msgs msgs2) >= 1 or n == 4)
+    /\ b4 := simplify(b4')
+    /\ metaCheck(['EXE], toVarsB(b4))
+    /\ mks' := putMarker(  [iid, s j | pxs | prids | rr(k) | TRec]
+                           [sid, s i | pxs' | prids' | rr(s k) ]
+                           [sc, s s k, n2 | msgs | msgs2 ] pc ! tt(n) ! mks ! b ! b4  ) .
+
+
+crl[irecover] :
+    [iid, j | pxs | prids | rr(l) | TRec ]
+    [sc, k, n2 | msgs msg(T ; prid , n1 <- recover(iid, rs3) ) | msgs2 ] pc ! tt(n) ! mks ! b ! b2
+    =>
+    [iid, s j | pxs | prids | rr(k) | TRec ]
+    [sc, s k, n2 | msgs | msgs2 ] pc ! tt(n) ! mks ! b ! b4
+    if b4' := ( (rr(l) + rs3 === rr(k)) and (b2))
+    /\ (numMsgs(msgs msgs2) >= 1 or n == 4)
+    /\ b4 := simplify(b4')
+    /\ metaCheck(['EXE], toVarsB(b4)) .
+
+crl[srecover] :
+
+  [sid, i | pxs | prids | rr(l) ]
+  [sc, k, n2 | msgs msg(T ; prid , n1 <- recover(sid, rs3) ) | msgs2 ] pc ! tt(n) ! mks ! b ! b2
+  =>
+  [sid, s i | pxs | prids | rr(k) ]
+  [sc, s k, n2 | msgs | msgs2 ] pc ! tt(n) ! mks' ! b ! b4
+  if b4' := ( (rr(l) + rs3 === rr(k)) and (b2))
+  /\ (numMsgs(msgs msgs2) >= 1 or n == 4)
+  /\ b4 := simplify(b4')
+  /\ metaCheck(['EXE], toVarsB(b4))
+  /\ mks' := putMarker(     [sid, s i | pxs | prids | rr(k) ]
+                            [sc, s k, n2 | msgs | msgs2 ] pc ! tt(n) ! mks ! b ! b4     )  .
+
+crl[buff] :
+    [sc, k, n2 | none | msgs2 msg(T ; prid , n1 <- evt)] pc
+    ! tt(n) ! mks ! b ! b2
+    =>
+    schd pc ! tt(s n) ! mks ! b3 ! b2
+    if schd := checkMsg([sc, k, n2 | msg(T ; prid , n1 <- evt) | msgs2], b, T)
+    /\ b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and ( (tt(s n) >= T) and (b))))
+    --- /\ numMsgs(getMsg1(schd)) == 1
+    /\ b3'' := advanceTime(tt(s n),getMsg2(schd),b3')
+    --- /\ b3'' := b3'
+    /\ b3 := simplify(b3'')
+    /\ metaCheck(['EXE], toVarsB(b3)) .
+
+
+  op checkMsg : Scheduler Boolean TSymReal -> Scheduler .
+  ceq checkMsg( [sc, k, n2 | msgs | msg(T1 ; prid , n1  <- evt) msgs2 ], b, T)
+      = checkMsg( [sc, k, n2 | msgs msg(T1 ; prid , n1  <- evt) | msgs2], b, T)
+  if b2 := ((T1 > T) and (b))
+  /\ not (metaCheck(['EXE], toVarsB(b2))) .
+  eq checkMsg(schd, b, T) = schd [owise] .
+
+op goal : Config TSymReal -> Bool .
+op goal : Config TSymReal RSymInt -> Bool .
+
+
+eq goal(conf, T) = false  [owise] .
+ceq goal( [sid, i | pxs | prids | rs1]
+          [sc, k, n2 | none | msgs2 ]
+           pc ! T ! depleted(sid, rsil ,T3) mks ! b ! b2, T1) = true
+if b3' := ( ( T - T3 >= T1   ) and  (b))
+/\ b3'' := advanceTime(T,msgs2,b3')
+--- /\ b3'' := b3'
+/\ b3 := simplify(b3'')
+/\ metaCheck(['EXE], toVarsB(b3)) .
+
+endm
+
+mod SLOWLORIS is
+  inc EXE .
+
+  ops initSlow1 initSlow2 initSlow3 initSlow4 initSlow5 : -> Config .
+
+  eq rMin = 0 .
+
+  op Threshold : -> TSymReal .
+  eq Threshold = tw(3) .
+
+  eq initSlow1 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(4) ]
+                 [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 10/1 ) and
+                 ( ( tw(1) === 12/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) === 2/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 100 ) and
+                 ( ( rr(4) === 100 ) and (true))))) .
+
+  eq initSlow2 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(4) ]
+                 [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 10/1 ) and
+                 ( ( tw(1) === 12/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) === 12/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 100 ) and
+                 ( ( rr(4) === 100 ) and (true))))) .
+
+  eq initSlow3 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(4) ]
+                 [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 10/1 ) and
+                 ( ( tw(1) === 12/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) === 23/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 100 ) and
+                 ( ( rr(4) === 100 ) and (true))))) .
+
+  eq initSlow4 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(4) ]
+                 [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 10/1 ) and
+                 ( ( tw(1) === 12/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) === 24/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 100 ) and
+                 ( ( rr(4) === 100 ) and (true))))) .
+
+
+  eq initSlow5 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(4) ]
+                 [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 10/1 ) and
+                 ( ( tw(1) === 12/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) === 35/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 100 ) and
+                 ( ( rr(4) === 100 ) and (true))))) .
+
+eq protInit( PR(1) ) = q(ND(0) ? rr(1) , rr(1) ; tw(1) ) .
+
+eq  protNodes( PR(1)  ) = q(ND(0) ? rr(1), rr(2) ; tw(1) )
+                        q(ND(1) ? rr(1), rr(2) ; tw(1) ) .
+
+eq  protTransitions( PR(1)   ) = < ND(0) ? rr(2), rr(2) ; tw(2) -> ND(0) >
+                                 < ND(0) ? rr(2), rr(1) ; tw(2) -> ND(1) > .
+
+endm
+
+mod VOIP is
+  inc EXE .
+
+  ops initVoip initVoip1 initVoip2 initVoip3 : -> Config .
+  eq rMin = 0 .
+
+  op Threshold : -> TSymReal .
+  eq Threshold = tw(3) .
+
+ eq initVoip = [ I(0), 0 | none | PR(1) | rr(4) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(5) ]
+                 [ SC(0), 6 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(1) === 40000/1 ) and
+                 ( ( tw(2) === 2/1  ) and
+                 ( ( tw(4) === 2/1  ) and
+                 ( ( tw(3) === 200000/1   )  and (true)))))) !
+                 ( ( rr(1) === 20  )  and
+                 ( ( rr(2) === 1  )  and
+                 ( ( rr(3) === 0 ) and
+                 ( ( rr(4) === 3500 ) and
+                 ( ( rr(5) === 64000 ) and (true)))))) .
+
+*** twice
+ eq initVoip1 = [ I(0), 0 | none | PR(1) | rr(4) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(5) ]
+                 [ SC(0),6,0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(1) === 40/1 ) and
+                 ( ( tw(2) === 1/1000  ) and
+                 ( ( tw(4) === 1/1  ) and
+                 ( ( tw(3) > 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 20  )  and
+                 ( ( rr(2) === 1  )  and
+                 ( ( rr(3) === 0 ) and
+                 ( ( rr(4) === 20 ) and
+                 ( ( rr(5) === 800 ) and (true)))))) .
+
+*** 3 times
+  eq initVoip2 = [ I(0), 0 | none | PR(1) | rr(4) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(5) ]
+                 [ SC(0),6,0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(1) === 40/1 ) and
+                 ( ( tw(2) === 1/1000  ) and
+                 ( ( tw(4) === 1/1  ) and
+                 ( ( tw(3) > 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 20  )  and
+                 ( ( rr(2) === 1  )  and
+                 ( ( rr(3) === 0 ) and
+                 ( ( rr(4) === 20 ) and
+                 ( ( rr(5) === 1200 ) and (true)))))) .
+
+
+ eq initVoip3 = [ I(0), 0 | none | PR(1) | rr(4) | tw(4) ]
+                 [ S(0), 0 | none | PR(1) | rr(5) ]
+                 [ SC(0),6,0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(1) === 40/1 ) and
+                 ( ( tw(2) === 1/1000  ) and
+                 ( ( tw(4) === 1/1  ) and
+                 ( ( tw(3) > 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 20  )  and
+                 ( ( rr(2) === 1  )  and
+                 ( ( rr(3) === 0 ) and
+                 ( ( rr(4) === 20 ) and
+                 ( ( rr(5) === 1600 ) and (true)))))) .
+
+  eq protInit(PR(1)) = q( ND(0) ? rr(1), rr(2) ; tw(1) ) .
+
+  eq protNodes(PR(1)) = q( ND(0) ? rr(1), rr(3) ; tw(1) )
+                        q( ND(1) ? rr(1), rr(3) ; tw(1) )
+                        q( ND(2) ? rr(1), rr(3) ; tw(1) )
+                        q( ND(3) ? rr(1), rr(3) ; tw(1) )
+                        q( ND(4) ? rr(1), rr(3) ; tw(1) )
+                        q( ND(5) ? rr(1), rr(3) ; tw(1) ) .
+
+  eq protTransitions(PR(1)) = < ND(0) ? rr(3), rr(2) ; tw(2) -> ND(1) >
+                              < ND(1) ? rr(3), rr(2) ; tw(2) -> ND(2) >
+                              < ND(2) ? rr(3), rr(2) ; tw(2) -> ND(3) >
+                              < ND(3) ? rr(3), rr(2) ; tw(2) -> ND(4) >
+                              < ND(4) ? rr(3), rr(2) ; tw(2) -> ND(5) > .
+endm
+
+
+mod SLOWTCAM is
+  inc EXE .
+
+  ops initSlowTCAM1 initSlowTCAM2 initSlowTCAM3 : -> Config .
+
+  op Threshold : -> TSymReal .
+  eq Threshold = tw(3) .
+  eq rMin = 0 .
+
+  eq initSlowTCAM1 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                   [ S(0), 0 | none | PR(1) | rr(4) ]
+                   [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 1/1 ) and
+                 ( ( tw(1) === 10/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) >= 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 15 ) and
+                 ( ( rr(4) === 30 ) and (true))))) .
+
+*** 15 packets per second and 45 rules
+  eq initSlowTCAM2 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                   [ S(0), 0 | none | PR(1) | rr(4) ]
+                   [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 1/1 ) and
+                 ( ( tw(1) === 10/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) >= 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 15 ) and
+                 ( ( rr(4) === 45 ) and (true))))) .
+
+
+*** 15 packets per second and 60 rules
+  eq initSlowTCAM3 = [ I(0), 0 | none | PR(1) | rr(3) | tw(4) ]
+                   [ S(0), 0 | none | PR(1) | rr(4) ]
+                   [ SC(0), 5 , 0 | none | none ] ! tt(4) ! none !
+                 ( ( tt(4) >= 0/1   ) and
+                 ( ( tw(4) === 1/1 ) and
+                 ( ( tw(1) === 10/1 ) and
+                 ( ( tw(2) === 1/1  ) and
+                 ( ( tw(3) >= 0/1   )  and (true)))))) !
+                 ( ( rr(1) === 1  )  and
+                 ( ( rr(2) === 0  )  and
+                 ( ( rr(3) === 15 ) and
+                 ( ( rr(4) === 60 ) and (true))))) .
+
+
+eq protInit( PR(1) ) = q(ND(0) ? rr(1) , rr(1) ; tw(1) ) .
+
+eq  protNodes( PR(1)  ) = q(ND(0) ? rr(1), rr(2) ; tw(1) )
+                          q(ND(1) ? rr(1), rr(2) ; tw(1) ) .
+
+eq  protTransitions( PR(1)   ) = < ND(0) ? rr(2), rr(1) ; tw(2) -> ND(1) >
+                                 < ND(0) ? rr(2), rr(2) ; tw(2) -> ND(0) > .
+
+endm
+
+***(
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart .
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart ; pcontinue .
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart ; pcontinue ; buff .
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart ; pcontinue ; buff ; irecover .
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart ; pcontinue ; buff ; irecover ; srecover .
+
+srewrite[1] in SLOWLORIS : initSlow1 using pstart ; pcontinue ; buff ; irecover ; srecover ; ptimeout .
+
+-------------------------------------------------------------------------------------------------------------------
+
+search [1] in SLOWLORIS : initSlow1 =>* conf:Config    such that goal(conf:Config, Threshold) = (    true).Bool .
+
+states: 4  rewrites: 2305 in 88ms cpu (92ms real) (26033
+    rewrites/second)
+conf:Config --> ([S(0),2 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(
+    11)] [SC(0),16,1 | none | msg(tt(6) + tw(1) ; PR(1),0 <-
+    timeout(rr(15), rr(13))) msg(tt(6) + tw(4) ; PR(1),0 <- recover(
+    I(0), rr(12)))] [I(0),2 | px(PR(1), ND(1), rr(7), 0) | PR(1) |
+    rr(10) | tw(4)]) ! tt(6) ! depleted(S(0), rr(6) ; rr(11), tt(5))
+    ! tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (tt(6) >=
+    tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >=
+    (0/1).Real and (tw(4) === (10/1).Real and (tw(1) === (12/1).Real
+    and (tw(2) === (1/1).Real and (tw(3) === (2/1).Real and
+    true))))))))) ! (rr(12) === rr(1) * rr(7) and (rr(13) === rr(2)
+    * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13) === rr(10) and (rr(
+    10) >= (0).Integer and (rr(14) === rr(2) * rr(7) and (rr(15) ===
+    rr(1) * rr(7) and (rr(6) + rr(9) - rr(14) - rr(15) === rr(11)
+    and (rr(11) >= (0).Integer and (rr(7) > (0).Integer and (rr(8)
+    === rr(1) * rr(7) and (rr(3) - rr(8) === rr(5) and (rr(5) >= (
+    0).Integer and (rr(9) === rr(1) * rr(7) and (rr(4) - rr(9) ===
+    rr(6) and (rr(6) >= (0).Integer and (rr(1) === (1).Integer and (
+    rr(2) === (0).Integer and (rr(3) === (100).Integer and (rr(4)
+    === (100).Integer and true)))))))))))))))))))
+
+
+search [1] in SLOWLORIS : initSlow2 =>* conf:Config    such that goal(conf:Config, Threshold) = (    true).Bool .
+
+Solution 1 (state 17)
+states: 18  rewrites: 15631 in 380ms cpu (384ms real) (41104
+    rewrites/second)
+conf:Config --> ([S(0),3 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(
+    17)] [SC(0),22,1 | none | msg(tt(6) + tw(4) ; PR(1),0 <-
+    recover(I(0), rr(12))) msg(tt(7) + tw(1) ; PR(1),0 <- timeout(
+    rr(21), rr(19))) msg(tt(7) + tw(4) ; PR(1),0 <- recover(I(0),
+    rr(18)))] [I(0),3 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(16)
+    | tw(4)]) ! tt(7) ! depleted(S(0), rr(6) ; rr(11) ; rr(17), tt(
+    5)) ! tt(7) < tt(6) + tw(4) and (tt(6) + tw(1) > tt(7) and (tt(
+    7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(5) + tw(1) > tt(6)
+    and (tt(6) >= (0/1).Real and (tt(6) >= tt(5) and (tt(5) >= (
+    0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(
+    4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2) === (
+    1/1).Real and (tw(3) === (12/1).Real and true))))))))))))) ! (
+    rr(18) === rr(1) * rr(7) and (rr(19) === rr(2) * rr(7) and (rr(
+    10) + rr(13) - rr(18) - rr(19) === rr(16) and (rr(16) >= (
+    0).Integer and (rr(20) === rr(2) * rr(7) and (rr(21) === rr(1) *
+    rr(7) and (rr(11) + rr(15) - rr(20) - rr(21) === rr(17) and (rr(
+    17) >= (0).Integer and (rr(12) === rr(2) * rr(7) and (rr(13) ===
+    rr(2) * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13) === rr(10)
+    and (rr(10) >= (0).Integer and (rr(14) === rr(2) * rr(7) and (
+    rr(15) === rr(1) * rr(7) and (rr(6) + rr(9) - rr(14) - rr(15)
+    === rr(11) and (rr(11) >= (0).Integer and (rr(7) > (0).Integer
+    and (rr(8) === rr(1) * rr(7) and (rr(3) - rr(8) === rr(5) and (
+    rr(5) >= (0).Integer and (rr(9) === rr(1) * rr(7) and (rr(4) -
+    rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(1) === (
+    1).Integer and (rr(2) === (0).Integer and (rr(3) === (
+    100).Integer and (rr(4) === (100).Integer and
+    true)))))))))))))))))))))))))))
+
+
+search [1] in SLOWLORIS : initSlow3 =>* conf:Config    such that goal(conf:Config, Threshold) = (    true).Bool .
+
+Solution 1 (state 70)
+states: 71  rewrites: 82534 in 1745ms cpu (1765ms real) (47292
+    rewrites/second)
+conf:Config --> ([S(0),2 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(
+    11)] [SC(0),17,1 | none | msg(tt(6) + tw(1) ; PR(1),0 <-
+    timeout(rr(15), rr(13)))] [I(0),3 | px(PR(1), ND(1), rr(7), 0) |
+    PR(1) | rr(16) | tw(4)]) ! tt(7) ! depleted(S(0), rr(6) ; rr(
+    11), tt(5)) ! tt(7) < tt(6) + tw(1) and (tt(7) >= (0/1).Real and
+    (tt(7) >= tt(6) and (tt(7) >= tt(6) + tw(4) and (tt(5) + tw(1) >
+    tt(6) and (tt(6) >= (0/1).Real and (tt(6) >= tt(5) and (tt(5) >=
+    (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(
+    4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2) === (
+    1/1).Real and (tw(3) === (23/1).Real and true))))))))))))) ! (
+    rr(10) + rr(12) === rr(16) and (rr(12) === rr(1) * rr(7) and (
+    rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13)
+    === rr(10) and (rr(10) >= (0).Integer and (rr(14) === rr(2) *
+    rr(7) and (rr(15) === rr(1) * rr(7) and (rr(6) + rr(9) - rr(14)
+    - rr(15) === rr(11) and (rr(11) >= (0).Integer and (rr(7) > (
+    0).Integer and (rr(8) === rr(1) * rr(7) and (rr(3) - rr(8) ===
+    rr(5) and (rr(5) >= (0).Integer and (rr(9) === rr(1) * rr(7) and
+    (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(1)
+    === (1).Integer and (rr(2) === (0).Integer and (rr(3) === (
+    100).Integer and (rr(4) === (100).Integer and
+    true))))))))))))))))))))
+
+
+search [1] in SLOWLORIS : initSlow4 =>* conf:Config such that goal(conf:Config,    Threshold) = (true).Bool .
+
+states: 409  rewrites: 664555 in 13703ms cpu (14411ms real) (48494
+    rewrites/second)
+conf:Config --> ([S(0),3 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(
+    17)] [SC(0),23,1 | none | msg(tt(7) + tw(1) ; PR(1),0 <-
+    timeout(rr(21), rr(19))) msg(tt(7) + tw(4) ; PR(1),0 <- recover(
+    I(0), rr(18)))] [I(0),4 | px(PR(1), ND(1), rr(7), 0) | PR(1) |
+    rr(22) | tw(4)]) ! tt(8) ! depleted(S(0), rr(6) ; rr(11) ; rr(
+    17), tt(5)) ! tt(8) < tt(7) + tw(1) and (tt(8) < tt(7) + tw(4)
+    and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(8) >= tt(6)
+    + tw(4) and (tt(7) < tt(6) + tw(4) and (tt(6) + tw(1) > tt(7)
+    and (tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(5) + tw(1)
+    > tt(6) and (tt(6) >= (0/1).Real and (tt(6) >= tt(5) and (tt(5)
+    >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (
+    tw(4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2) ===
+    (1/1).Real and (tw(3) === (24/1).Real and true))))))))))))))))))
+    ! (rr(16) + rr(12) === rr(22) and (rr(18) === rr(1) * rr(7) and
+    (rr(19) === rr(2) * rr(7) and (rr(10) + rr(13) - rr(18) - rr(19)
+    === rr(16) and (rr(16) >= (0).Integer and (rr(20) === rr(2) *
+    rr(7) and (rr(21) === rr(1) * rr(7) and (rr(11) + rr(15) - rr(
+    20) - rr(21) === rr(17) and (rr(17) >= (0).Integer and (rr(12)
+    === rr(2) * rr(7) and (rr(13) === rr(2) * rr(7) and (rr(5) + rr(
+    8) - rr(12) - rr(13) === rr(10) and (rr(10) >= (0).Integer and (
+    rr(14) === rr(2) * rr(7) and (rr(15) === rr(1) * rr(7) and (rr(
+    6) + rr(9) - rr(14) - rr(15) === rr(11) and (rr(11) >= (
+    0).Integer and (rr(7) > (0).Integer and (rr(8) === rr(1) * rr(7)
+    and (rr(3) - rr(8) === rr(5) and (rr(5) >= (0).Integer and (rr(
+    9) === rr(1) * rr(7) and (rr(4) - rr(9) === rr(6) and (rr(6) >=
+    (0).Integer and (rr(1) === (1).Integer and (rr(2) === (
+    0).Integer and (rr(3) === (100).Integer and (rr(4) === (
+    100).Integer and true))))))))))))))))))))))))))))
+
+search [1] in SLOWLORIS : initSlow5 =>* conf:Config such that goal(conf:Config,    Threshold) = (true).Bool .
+
+
+
+==========================================================================
+VoIP
+
+search [1] in VOIP : initVoip =>* conf:Config such that goal(conf:Config,Threshold) = (true).Bool .
+
+search [1] in VOIP : initVoip1 =>* conf:Config such that goal(conf:Config,  Threshold) = (true).Bool .
+
+Solution 1 (state 875)
+states: 2  rewrites: 1574763 in 29894ms cpu (30595ms real) (52677
+    rewrites/second)
+conf:Config --> ([S(0),4 | px(PR(1), ND(1), rr(8), 0) px(PR(1), ND(
+    1), rr(20), 1) | PR(1) | rr(24)] [SC(0),29,2 | none | msg(tt(6)
+    + tw(1) ; PR(1),0 <- timeout(rr(16), rr(14))) msg(tt(9) + tw(1)
+    ; PR(1),1 <- timeout(rr(28), rr(26))) msg(tt(9) + tw(4) ; PR(1),
+    1 <- recover(I(0), rr(25)))] [I(0),5 | px(PR(1), ND(1), rr(8),
+    0) px(PR(1), ND(1), rr(20), 1) | PR(1) | rr(23) | tw(4)]) ! tt(
+    9) ! depleted(S(0), rr(19) ; rr(24), tt(8)) ! tt(9) < tt(6) +
+    tw(1) and (tt(8) + tw(1) > tt(9) and (tt(9) >= (0/1).Real and (
+    tt(9) >= tt(8) and (tt(8) < tt(6) + tw(1) and (tt(8) >= (
+    0/1).Real and (tt(8) >= tt(7) and (tt(7) < tt(6) + tw(1) and (
+    tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) +
+    tw(4) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (
+    tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and
+    (tt(4) >= (0/1).Real and (tw(1) === (40/1).Real and (tw(2) === (
+    1/1000).Real and (tw(4) === (1/1).Real and (tw(3) > (0/1).Real
+    and true)))))))))))))))))))) ! (rr(25) === rr(2) * rr(20) and (
+    rr(26) === rr(3) * rr(20) and (rr(18) + rr(21) - rr(25) - rr(26)
+    === rr(23) and (rr(23) >= (0).Integer and (rr(27) === rr(3) *
+    rr(20) and (rr(28) === rr(1) * rr(20) and (rr(19) + rr(22) - rr(
+    27) - rr(28) === rr(24) and (rr(24) >= (0).Integer and (rr(20) >
+    (0).Integer and (rr(21) === rr(2) * rr(20) and (rr(17) - rr(21)
+    === rr(18) and (rr(18) >= (0).Integer and (rr(22) === rr(1) *
+    rr(20) and (rr(12) - rr(22) === rr(19) and (rr(19) >= (
+    0).Integer and (rr(11) + rr(13) === rr(17) and (rr(13) === rr(2)
+    * rr(8) and (rr(14) === rr(3) * rr(8) and (rr(6) + rr(9) - rr(
+    13) - rr(14) === rr(11) and (rr(11) >= (0).Integer and (rr(15)
+    === rr(3) * rr(8) and (rr(16) === rr(1) * rr(8) and (rr(7) + rr(
+    10) - rr(15) - rr(16) === rr(12) and (rr(12) >= (0).Integer and
+    (rr(8) > (0).Integer and (rr(9) === rr(2) * rr(8) and (rr(4) -
+    rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(10) === rr(1)
+    * rr(8) and (rr(5) - rr(10) === rr(7) and (rr(7) >= (0).Integer
+    and (rr(1) === (20).Integer and (rr(2) === (1).Integer and (rr(
+    3) === (0).Integer and (rr(4) === (20).Integer and (rr(5) === (
+    800).Integer and true))))))))))))))))))))))))))))))))))))
+
+
+search [1] in VOIP : initVoip2 =>* conf:Config such that goal(conf:Config,  Threshold) = (true).Bool .
+
+search [1] in VOIP : initVoip3 =>* conf:Config such that goal(conf:Config,    Threshold) = (true).Bool .
+
+red advanceTime(tt(100), msg(tt(6) + tw(1) ;    PR(1),0 <- timeout(rr(15), rr(13))) msg(tt(6) + tw(    2) ; PR(1),0 <- recover(S(0), rr(14))) msg(tt(6) +    tw(4) ; PR(1),0 <- recover(I(0), rr(12))), true ) .
+
+=========================================================
+SlowTCAM
+
+search [1] in SLOWTCAM : initSlowTCAM1 =>* conf:Config such that goal(conf:Config,Threshold) = (true).Bool .
+
+Solution 1 (state 16)
+states: 17  rewrites: 12291 in 312ms cpu (317ms real) (39322
+    rewrites/second)
+conf:Config --> ([S(0),3 | px(PR(1), ND(0), rr(7), 0) px(PR(1), ND(
+    0), rr(18), 1) | PR(1) | rr(17)] [SC(0),21,2 | none | msg(tt(6)
+    + tw(1) ; PR(1),0 <- timeout(rr(15), rr(13))) msg(tt(6) + tw(4)
+    ; PR(1),0 <- recover(I(0), rr(12))) msg(tt(7) + tw(1) ; PR(1),1
+    <- timeout(rr(20), rr(19)))] [I(0),3 | px(PR(1), ND(0), rr(7),
+    0) px(PR(1), ND(0), rr(18), 1) | PR(1) | rr(16) | tw(4)]) ! tt(
+    7) ! depleted(S(0), rr(17), tt(7)) ! tt(7) < tt(6) + tw(1) and (
+    tt(7) < tt(6) + tw(4) and (tt(7) >= (0/1).Real and (tt(7) >= tt(
+    6) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (tt(
+    6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (
+    tt(4) >= (0/1).Real and (tw(4) === (1/1).Real and (tw(1) === (
+    10/1).Real and (tw(2) === (1/1).Real and (tw(3) >= (0/1).Real
+    and true))))))))))))) ! (rr(18) > (0).Integer and (rr(19) ===
+    rr(1) * rr(18) and (rr(10) - rr(19) === rr(16) and (rr(16) >= (
+    0).Integer and (rr(20) === rr(1) * rr(18) and (rr(11) - rr(20)
+    === rr(17) and (rr(17) >= (0).Integer and (rr(12) === rr(2) *
+    rr(7) and (rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) - rr(12)
+    - rr(13) === rr(10) and (rr(10) >= (0).Integer and (rr(14) ===
+    rr(2) * rr(7) and (rr(15) === rr(1) * rr(7) and (rr(6) + rr(9) -
+    rr(14) - rr(15) === rr(11) and (rr(11) >= (0).Integer and (rr(7)
+    > (0).Integer and (rr(8) === rr(1) * rr(7) and (rr(3) - rr(8)
+    === rr(5) and (rr(5) >= (0).Integer and (rr(9) === rr(1) * rr(7)
+    and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(
+    1) === (1).Integer and (rr(2) === (0).Integer and (rr(3) === (
+    15).Integer and (rr(4) === (30).Integer and
+    true))))))))))))))))))))))))))
+
+search [1] in SLOWTCAM : initSlowTCAM2 =>* conf:Config such that goal(conf:Config,Threshold) = (true).Bool .
+
+Solution 1 (state 386)
+states: 387  rewrites: 555118 in 12495ms cpu (12998ms real) (44424
+    rewrites/second)
+conf:Config --> ([S(0),5 | px(PR(1), ND(0), rr(7), 0) px(PR(1), ND(
+    0), rr(18), 1) px(PR(1), ND(0), rr(29), 2) | PR(1) | rr(28)] [
+    SC(0),32,3 | none | msg(tt(6) + tw(1) ; PR(1),0 <- timeout(rr(
+    15), rr(13))) msg(tt(6) + tw(4) ; PR(1),0 <- recover(I(0), rr(
+    12))) msg(tt(8) + tw(1) ; PR(1),1 <- timeout(rr(26), rr(24)))
+    msg(tt(8) + tw(4) ; PR(1),1 <- recover(I(0), rr(23))) msg(tt(9)
+    + tw(1) ; PR(1),2 <- timeout(rr(31), rr(30)))] [I(0),5 | px(PR(
+    1), ND(0), rr(7), 0) px(PR(1), ND(0), rr(18), 1) px(PR(1), ND(
+    0), rr(29), 2) | PR(1) | rr(27) | tw(4)]) ! tt(9) ! depleted(S(
+    0), rr(28), tt(9)) ! tt(9) < tt(6) + tw(1) and (tt(9) < tt(6) +
+    tw(4) and (tt(9) < tt(8) + tw(1) and (tt(9) < tt(8) + tw(4) and
+    (tt(9) >= (0/1).Real and (tt(9) >= tt(8) and (tt(8) < tt(6) +
+    tw(1) and (tt(8) < tt(6) + tw(4) and (tt(7) + tw(1) > tt(8) and
+    (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(7) < tt(6) +
+    tw(1) and (tt(7) < tt(6) + tw(4) and (tt(7) >= (0/1).Real and (
+    tt(7) >= tt(6) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (
+    0/1).Real and (tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(
+    5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(4) === (1/1).Real
+    and (tw(1) === (10/1).Real and (tw(2) === (1/1).Real and (tw(3)
+    >= (0/1).Real and true)))))))))))))))))))))))) ! (rr(29) > (
+    0).Integer and (rr(30) === rr(1) * rr(29) and (rr(21) - rr(30)
+    === rr(27) and (rr(27) >= (0).Integer and (rr(31) === rr(1) *
+    rr(29) and (rr(22) - rr(31) === rr(28) and (rr(28) >= (
+    0).Integer and (rr(23) === rr(2) * rr(18) and (rr(24) === rr(2)
+    * rr(18) and (rr(16) + rr(19) - rr(23) - rr(24) === rr(21) and (
+    rr(21) >= (0).Integer and (rr(25) === rr(2) * rr(18) and (rr(26)
+    === rr(1) * rr(18) and (rr(17) + rr(20) - rr(25) - rr(26) ===
+    rr(22) and (rr(22) >= (0).Integer and (rr(18) > (0).Integer and
+    (rr(19) === rr(1) * rr(18) and (rr(10) - rr(19) === rr(16) and (
+    rr(16) >= (0).Integer and (rr(20) === rr(1) * rr(18) and (rr(11)
+    - rr(20) === rr(17) and (rr(17) >= (0).Integer and (rr(12) ===
+    rr(2) * rr(7) and (rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) -
+    rr(12) - rr(13) === rr(10) and (rr(10) >= (0).Integer and (rr(
+    14) === rr(2) * rr(7) and (rr(15) === rr(1) * rr(7) and (rr(6) +
+    rr(9) - rr(14) - rr(15) === rr(11) and (rr(11) >= (0).Integer
+    and (rr(7) > (0).Integer and (rr(8) === rr(1) * rr(7) and (rr(3)
+    - rr(8) === rr(5) and (rr(5) >= (0).Integer and (rr(9) === rr(1)
+    * rr(7) and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer
+    and (rr(1) === (1).Integer and (rr(2) === (0).Integer and (rr(3)
+    === (15).Integer and (rr(4) === (45).Integer and
+    true)))))))))))))))))))))))))))))))))))))))))
+
+search [1] in SLOWTCAM : initSlowTCAM3 =>* conf:Config such that goal(conf:Config,Threshold) = (true).Bool .
+
+
+)

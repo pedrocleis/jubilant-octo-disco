@@ -1,0 +1,67 @@
+
+Estado inicial:
+
+os recursos do sevidor tem um limite dado:
+
+b = rs1 <= max_resource_intruso and rs2 <= max_resource_Server
+
+[iid, j | (a, r1, r2) acts | rs1] 
+[s | (a, r1, r2) acts2 | rs2]
+[sc | none | msgs2]
+! tt(n) ! b
+=> 
+[iid, s j | (a, r1, r2) acts | rs1'] 
+[s | (a, r1, r2) acts2 | rs2]
+[sc | none | msgs2 (tt(s n) + delay, s <- consume(consumeR1(s j)))
+           (tt(s n) + recovery, i <- recover(consumeR1(s j)))]
+! tt(s n) ! b2
+if b2 = b and (tt(s n) >= tt(n)) 
+          and rs1 - rs1' == consumeR1(s j)
+          and consumeR1(s j) > 0 .
+
+
+[s | (a, r1, r2) acts2 | rs2]
+[sc | msgs (T, s <- consume(consumeR1)) | msg2 ]
+! tt(n) ! b
+=> 
+[s | (a, r1, r2) acts2 | rs2']
+[sc | msgs (tt(s n) + timeout, s <- recover(consumeR1)) | msg2 ]
+! tt(s n) ! b2
+if b2 = b and (tt(s n) >= T) 
+          and rs2 - rs2' == consumeR1
+          and consumeR1(s j) > 0 .
+
+
+[s | (a, r1, r2) acts2 | rs2]
+[sc | msgs (T, s <- consume(consumeR1(s j))) | msg2]
+! tt(n) ! b
+=> 
+[s | (a, r1, r2) acts2 | rs2']
+[sc | msgs ]
+! tt(s n) ! b2
+if b2 = b and (tt(s n) >= T) 
+          and rs2 - rs2' == consumeR1(s j)
+          and consumeR1(s j) > 0 .
+
+
+[sc | none | (T, ag <- content) msg2]
+! tt(n) ! b
+=> 
+schd
+! T ! b
+if schd := checkMsg([sc | (T, ag <- content) | msg2], T)
+
+op goal : Config -> Bool .
+eq goal([s | (a, r1, r2) acts2 | rs2] 
+        [sc | none | msg2] ! T ! b) = true
+if [rec1@T1, rec2@T2, ..., recn@Tn] := getRec(msg2)
+/\ metacheck(..., b and rs2 == 0
+                 T1 - T > limiar and T2 - T > limiar and ... and Tn - T > limiar)
+
+search initConf => conf such that goal(conf) .
+
+
+
+
+
+

@@ -1,0 +1,169 @@
+OBS : numMsg >= 1 or n == 4 ?????
+OBS2 : stack overflow??
+
+
+
+
+-----------------------------------------------------------------------------
+SLOWLORIS
+
+Solution 1 (state 7384)
+states: 7385  rewrites: 35663899 in 318416ms cpu (324779ms real) (112004
+    rewrites/second)
+conf:Config --> ([S(0),3 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(18)] [SC(0),
+    24,1 | none | msg(tt(8) + tw(1) ; PR(1),0 <- timeout(rr(22), rr(20)))] [I(
+    0),5 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(23) | tw(4)]) ! tt(9) !
+    depleted(S(0), rr(6) ; rr(11) ; rr(18), tt(5)) ! tt(9) < tt(8) + tw(1) and
+    (tt(9) >= (0/1).Real and (tt(9) >= tt(8) and (tt(9) >= tt(8) + tw(4) and (
+    tt(6) + tw(1) > tt(8) and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(
+    7) < tt(6) + tw(1) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7)
+    >= tt(6) + tw(4) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (
+    tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (
+    0/1).Real and (tw(4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2)
+    === (1/1).Real and (tw(3) === (35/1).Real and true)))))))))))))))))))) ! (
+    rr(17) + rr(19) === rr(23) and (rr(19) === rr(1) * rr(7) and (rr(20) ===
+    rr(2) * rr(7) and (rr(16) + rr(13) - rr(19) - rr(20) === rr(17) and (rr(17)
+    >= (0).Integer and (rr(21) === rr(2) * rr(7) and (rr(22) === rr(1) * rr(7)
+    and (rr(11) + rr(15) - rr(21) - rr(22) === rr(18) and (rr(18) >= (
+    0).Integer and (rr(10) + rr(12) === rr(16) and (rr(12) === rr(2) * rr(7)
+    and (rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13) === rr(
+    10) and (rr(10) >= (0).Integer and (rr(14) === rr(2) * rr(7) and (rr(15)
+    === rr(1) * rr(7) and (rr(6) + rr(9) - rr(14) - rr(15) === rr(11) and (rr(
+    11) >= (0).Integer and (rr(7) > (0).Integer and (rr(8) === rr(1) * rr(7)
+    and (rr(3) - rr(8) === rr(5) and (rr(5) >= (0).Integer and (rr(9) === rr(1)
+    * rr(7) and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(1)
+    === (1).Integer and (rr(2) === (0).Integer and (rr(3) === (100).Integer and
+    (rr(4) === (100).Integer and true)))))))))))))))))))))))))))))
+
+
+OT 2 numPxs < 1
+
+ states: 56  rewrites: 148368 in 1444ms cpu (1521ms real) (102747
+    rewrites/second)
+conf:Config --> ([S(0),3 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(18)] [SC(0),
+    24,1 | none | msg(tt(8) + tw(1) ; PR(1),0 <- timeout(rr(22), rr(20)))] [I(
+    0),5 | px(PR(1), ND(1), rr(7), 0) | PR(1) | rr(23) | tw(4)]) ! tt(9) !
+    depleted(S(0), rr(6) ; rr(11) ; rr(18), tt(5)) ! tt(9) < tt(8) + tw(1) and
+    (tt(9) >= (0/1).Real and (tt(9) >= tt(8) and (tt(9) >= tt(8) + tw(4) and (
+    tt(6) + tw(1) > tt(8) and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(
+    7) < tt(6) + tw(1) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7)
+    >= tt(6) + tw(4) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (
+    tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (
+    0/1).Real and (tw(4) === (10/1).Real and (tw(1) === (12/1).Real and (tw(2)
+    === (1/1).Real and (tw(3) === (35/1).Real and true)))))))))))))))))))) ! (
+    rr(17) + rr(19) === rr(23) and (rr(19) === rr(1) * rr(7) and (rr(20) ===
+    rr(2) * rr(7) and (rr(16) + rr(13) - rr(19) - rr(20) === rr(17) and (rr(17)
+    >= (0).Integer and (rr(21) === rr(2) * rr(7) and (rr(22) === rr(1) * rr(7)
+    and (rr(11) + rr(15) - rr(21) - rr(22) === rr(18) and (rr(18) >= (
+    0).Integer and (rr(10) + rr(12) === rr(16) and (rr(12) === rr(2) * rr(7)
+    and (rr(13) === rr(2) * rr(7) and (rr(5) + rr(8) - rr(12) - rr(13) === rr(
+    10) and (rr(10) >= (0).Integer and (rr(14) === rr(2) * rr(7) and (rr(15)
+    === rr(1) * rr(7) and (rr(6) + rr(9) - rr(14) - rr(15) === rr(11) and (rr(
+    11) >= (0).Integer and (rr(7) > (0).Integer and (rr(8) === rr(1) * rr(7)
+    and (rr(3) - rr(8) === rr(5) and (rr(5) >= (0).Integer and (rr(9) === rr(1)
+    * rr(7) and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(1)
+    === (1).Integer and (rr(2) === (0).Integer and (rr(3) === (100).Integer and
+    (rr(4) === (100).Integer and true)))))))))))))))))))))))))))))
+
+
+------------------------------------------------------------------------------
+VOIP 1
+
+OT 1
+
+
+
+
+
+OT 2 numPxs < 2
+
+    Solution 1 (state 149)
+states: 150  rewrites: 397779 in 3612ms cpu (3615ms real) (110127
+    rewrites/second)
+conf:Config --> ([S(0),4 | px(PR(1), ND(1), rr(8), 0) px(PR(1), ND(1), rr(20),
+    1) | PR(1) | rr(24)] [SC(0),29,2 | none | msg(tt(6) + tw(1) ; PR(1),0 <-
+    timeout(rr(16), rr(14))) msg(tt(9) + tw(1) ; PR(1),1 <- timeout(rr(28), rr(
+    26))) msg(tt(9) + tw(4) ; PR(1),1 <- recover(I(0), rr(25)))] [I(0),5 | px(
+    PR(1), ND(1), rr(8), 0) px(PR(1), ND(1), rr(20), 1) | PR(1) | rr(23) | tw(
+    4)]) ! tt(9) ! depleted(S(0), rr(19) ; rr(24), tt(8)) ! tt(9) < tt(6) + tw(
+    1) and (tt(8) + tw(1) > tt(9) and (tt(9) >= (0/1).Real and (tt(9) >= tt(8)
+    and (tt(8) < tt(6) + tw(1) and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and
+    (tt(7) < tt(6) + tw(1) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (
+    tt(7) >= tt(6) + tw(4) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real
+    and (tt(6) >= tt(5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4)
+    >= (0/1).Real and (tw(1) === (40/1).Real and (tw(2) === (1/1000).Real and (
+    tw(4) === (1/1).Real and (tw(3) > (0/1).Real and true)))))))))))))))))))) !
+    (rr(25) === rr(2) * rr(20) and (rr(26) === rr(3) * rr(20) and (rr(18) + rr(
+    21) - rr(25) - rr(26) === rr(23) and (rr(23) >= (0).Integer and (rr(27) ===
+    rr(3) * rr(20) and (rr(28) === rr(1) * rr(20) and (rr(19) + rr(22) - rr(27)
+    - rr(28) === rr(24) and (rr(24) >= (0).Integer and (rr(20) > (0).Integer
+    and (rr(21) === rr(2) * rr(20) and (rr(17) - rr(21) === rr(18) and (rr(18)
+    >= (0).Integer and (rr(22) === rr(1) * rr(20) and (rr(12) - rr(22) === rr(
+    19) and (rr(19) >= (0).Integer and (rr(11) + rr(13) === rr(17) and (rr(13)
+    === rr(2) * rr(8) and (rr(14) === rr(3) * rr(8) and (rr(6) + rr(9) - rr(13)
+    - rr(14) === rr(11) and (rr(11) >= (0).Integer and (rr(15) === rr(3) * rr(
+    8) and (rr(16) === rr(1) * rr(8) and (rr(7) + rr(10) - rr(15) - rr(16) ===
+    rr(12) and (rr(12) >= (0).Integer and (rr(8) > (0).Integer and (rr(9) ===
+    rr(2) * rr(8) and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (
+    rr(10) === rr(1) * rr(8) and (rr(5) - rr(10) === rr(7) and (rr(7) >= (
+    0).Integer and (rr(1) === (20).Integer and (rr(2) === (1).Integer and (rr(
+    3) === (0).Integer and (rr(4) === (20).Integer and (rr(5) === (800).Integer
+    and true))))))))))))))))))))))))))))))))))))
+
+
+    --------------------------------------------------------------------------------------------
+
+    VOIP 0
+
+
+    OT 2 : numPXS < 1
+
+    Solution 1 (state 350)
+states: 351  rewrites: 909302 in 7632ms cpu (7664ms real) (119143
+    rewrites/second)
+conf:Config --> ([S(0),6 | px(PR(1), ND(5), rr(8), 0) | PR(1) | rr(40)] [SC(0),
+    46,1 | none | msg(tt(14) + tw(1) ; PR(1),0 <- timeout(rr(44), rr(42)))] [I(
+    0),11 | px(PR(1), ND(5), rr(8), 0) | PR(1) | rr(45) | tw(4)]) ! tt(15) !
+    depleted(S(0), rr(7) ; rr(12) ; rr(19) ; rr(26) ; rr(33) ; rr(40), tt(5)) !
+    tt(15) < tt(14) + tw(1) and (tt(15) >= (0/1).Real and (tt(15) >= tt(14) and
+    (tt(15) >= tt(14) + tw(4) and (tt(12) + tw(1) > tt(14) and (tt(14) >= (
+    0/1).Real and (tt(14) >= tt(13) and (tt(13) < tt(12) + tw(1) and (tt(13) >=
+    (0/1).Real and (tt(13) >= tt(12) and (tt(13) >= tt(12) + tw(4) and (tt(10)
+    + tw(1) > tt(12) and (tt(12) >= (0/1).Real and (tt(12) >= tt(11) and (tt(
+    11) < tt(10) + tw(1) and (tt(11) >= (0/1).Real and (tt(11) >= tt(10) and (
+    tt(11) >= tt(10) + tw(4) and (tt(8) + tw(1) > tt(10) and (tt(10) >= (
+    0/1).Real and (tt(10) >= tt(9) and (tt(9) < tt(8) + tw(1) and (tt(9) >= (
+    0/1).Real and (tt(9) >= tt(8) and (tt(9) >= tt(8) + tw(4) and (tt(6) + tw(
+    1) > tt(8) and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(7) < tt(6)
+    + tw(1) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) +
+    tw(4) and (tt(5) + tw(1) > tt(6) and (tt(6) >= (0/1).Real and (tt(6) >= tt(
+    5) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real
+    and (tw(1) === (40000/1).Real and (tw(2) === (2/1).Real and (tw(4) === (
+    2/1).Real and (tw(3) === (200000/1).Real and
+    true))))))))))))))))))))))))))))))))))))))))) ! (rr(39) + rr(41) === rr(45)
+    and (rr(41) === rr(2) * rr(8) and (rr(42) === rr(3) * rr(8) and (rr(38) +
+    rr(35) - rr(41) - rr(42) === rr(39) and (rr(39) >= (0).Integer and (rr(43)
+    === rr(3) * rr(8) and (rr(44) === rr(1) * rr(8) and (rr(33) + rr(37) - rr(
+    43) - rr(44) === rr(40) and (rr(40) >= (0).Integer and (rr(32) + rr(34) ===
+    rr(38) and (rr(34) === rr(2) * rr(8) and (rr(35) === rr(3) * rr(8) and (rr(
+    31) + rr(28) - rr(34) - rr(35) === rr(32) and (rr(32) >= (0).Integer and (
+    rr(36) === rr(3) * rr(8) and (rr(37) === rr(1) * rr(8) and (rr(26) + rr(30)
+    - rr(36) - rr(37) === rr(33) and (rr(33) >= (0).Integer and (rr(25) + rr(
+    27) === rr(31) and (rr(27) === rr(2) * rr(8) and (rr(28) === rr(3) * rr(8)
+    and (rr(24) + rr(21) - rr(27) - rr(28) === rr(25) and (rr(25) >= (
+    0).Integer and (rr(29) === rr(3) * rr(8) and (rr(30) === rr(1) * rr(8) and
+    (rr(19) + rr(23) - rr(29) - rr(30) === rr(26) and (rr(26) >= (0).Integer
+    and (rr(18) + rr(20) === rr(24) and (rr(20) === rr(2) * rr(8) and (rr(21)
+    === rr(3) * rr(8) and (rr(17) + rr(14) - rr(20) - rr(21) === rr(18) and (
+    rr(18) >= (0).Integer and (rr(22) === rr(3) * rr(8) and (rr(23) === rr(1) *
+    rr(8) and (rr(12) + rr(16) - rr(22) - rr(23) === rr(19) and (rr(19) >= (
+    0).Integer and (rr(11) + rr(13) === rr(17) and (rr(13) === rr(2) * rr(8)
+    and (rr(14) === rr(3) * rr(8) and (rr(6) + rr(9) - rr(13) - rr(14) === rr(
+    11) and (rr(11) >= (0).Integer and (rr(15) === rr(3) * rr(8) and (rr(16)
+    === rr(1) * rr(8) and (rr(7) + rr(10) - rr(15) - rr(16) === rr(12) and (rr(
+    12) >= (0).Integer and (rr(8) > (0).Integer and (rr(9) === rr(2) * rr(8)
+    and (rr(4) - rr(9) === rr(6) and (rr(6) >= (0).Integer and (rr(10) === rr(
+    1) * rr(8) and (rr(5) - rr(10) === rr(7) and (rr(7) >= (0).Integer and (rr(
+    1) === (20).Integer and (rr(2) === (1).Integer and (rr(3) === (0).Integer
+    and (rr(4) === (3500).Integer and (rr(5) === (64000).Integer and
+    true)))))))))))))))))))))))))))))))))))))))))))))))))))))))))

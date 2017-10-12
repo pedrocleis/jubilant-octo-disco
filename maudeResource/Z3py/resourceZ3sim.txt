@@ -1,0 +1,54 @@
+(declare-const limit Int)
+(declare-fun S (Int) Bool)
+
+(assert (forall ( (n Int) )
+        ( => (> n limit) (not (S n)))
+))
+
+(assert (forall ( (n Int) )
+        ( => (< n 0) (not (S n)))
+))
+
+(declare-fun rss (Int Int) Bool)
+(declare-fun rii (Int Int) Bool)
+
+(assert (forall  ((i Int) (n1 Int) (n2 Int))
+		 (=> (and (rss i n1) (rss i n2)) (= n1 n2))
+))
+
+(assert (forall ( (n Int))
+	(=> (rss 0 n) (>= n 0) )
+))
+
+(assert (forall  ((i Int) (n1 Int) (n2 Int))
+		 (=> (and (rii i n1) (rii i n2)) (= n1 n2))
+))
+
+(assert (forall ( (n Int))
+	(=> (rii 0 n) (>= n 0) )
+))
+
+(declare-fun time (Int Real) Bool)
+(assert ( forall ( (i Int) (r1 Real) (r2 Real))
+        ( => (and (time i r1) (time i r2))  (= r1 r2))
+))
+
+(define-fun trans (  ( i Int)   (j Int)   ) Bool
+    ( and
+    ( and ( and (S i) (S j) ) ( = j (+ i 1)))
+    ( forall ( (n Int) (m Int)) ( => (and (rss i n) (rii i m)) (and (rss j (- n 20) ) (rii j (- m 20))))  )
+    ))
+
+    rss (i n ) and rii( i m ) => rss (j n- 20 ) and rii(j m - 20)
+
+[conditions] and [trans xor trans xor ...]
+(declare-const minRes Int)
+
+(assert (= minRes 0))
+(assert (= limit 10))
+(assert (rss 1 500))
+(assert (rii 1 100))
+(assert (exists ( (n Int) (i Int) ) (and (rss i n) (<= n minRes))
+))
+
+(check-sat)

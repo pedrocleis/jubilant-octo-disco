@@ -1,0 +1,3 @@
+v1 -> implementação sem os protocolos, apenas com snd e receive
+v2 -> inclusão das regras dos protocolos e dos markers
+v3 -> adicionado o custo de manutenção de um protocolo por parte do intruso

@@ -1,0 +1,595 @@
+load smt
+
+fmod SYM-REAL is
+  pr REAL .
+  pr REAL-INTEGER .
+
+  vars tt1 tt2 tt3 : TimeSym .
+  vars tr1 tr2 tr0 : TSymReal .
+  var r : Real .
+  var b : Boolean .
+
+  sort TimeSym TSymReal .
+  subsort TimeSym Real < TSymReal .
+
+  op _<=_ : TSymReal TSymReal -> Boolean  [ditto] .
+  op _>=_ : TSymReal TSymReal -> Boolean  [ditto] .
+  op _>_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _<_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _===_ : TSymReal TSymReal -> Boolean [ditto] .
+  op _=/==_ : TSymReal TSymReal -> Boolean [ditto] .
+
+  op -_ : TSymReal -> TSymReal [ditto] .
+  op _+_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _*_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _-_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _/_ : TSymReal TSymReal -> TSymReal [ditto] .
+  op _?_:_ : Boolean TSymReal TSymReal -> TSymReal [ditto] .
+
+  op toReal : TimeSym -> TSymReal [ctor] .
+  op toInt : TSymReal -> TimeSym [ctor] .
+
+  op tsubr : TimeSym TSymReal TSymReal -> TSymReal .
+  op tsubb : TimeSym TSymReal Boolean -> Boolean .
+
+  eq tsubr(tt1,tr0,tt1) = tr0 .
+  eq tsubr(tt1,tr0,- tr1) = - tsubr(tt1,tr0,tr1) .
+  eq tsubr(tt1,tr0,tr1 + tr2) =
+       tsubr(tt1,tr0,tr1) + tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 * tr2) =
+       tsubr(tt1,tr0,tr1) * tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 - tr2) =
+       tsubr(tt1,tr0,tr1) - tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,tr1 / tr2) =
+       tsubr(tt1,tr0,tr1) / tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,b ? tr1 : tr2) =
+       tsubb(tt1,tr0,b) ?
+         tsubr(tt1,tr0,tr1) : tsubr(tt1,tr0,tr2) .
+  eq tsubr(tt1,tr0,toReal(toInt(tr1))) =
+     toReal(toInt(tsubr(tt1,tr0,tr1))) .
+  eq tsubr(tt1,tr0,tr1) = tr1 [owise] .
+
+  eq tsubb(tt1,tr0,tr1 <= tr2) =
+    tsubr(tt1,tr0,tr1) <= tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 >= tr2) =
+    tsubr(tt1,tr0,tr1) >= tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 > tr2) =
+    tsubr(tt1,tr0,tr1) > tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 === tr2) =
+    tsubr(tt1,tr0,tr1) === tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,tr1 =/== tr2) =
+    tsubr(tt1,tr0,tr1) =/== tsubr(tt1,tr0,tr2) .
+  eq tsubb(tt1,tr0,b) = b [owise] .
+
+    --- Assuming that r is positive!
+  op simplify : Boolean -> Boolean .
+  eq simplify(false and b) = false .
+  eq simplify((tt1 > tt1 + r) and b) = false .
+  eq simplify((tt1 >= tt1 + r) and b) = false .
+  eq simplify((tt1 + r < tt1) and b) = false .
+  eq simplify((tt1 + r <= tt1) and b) = false .
+  eq simplify((tt1 === tt1 + r) and b) = false .
+  eq simplify((tt1 <= tt1 + r) and b) = simplify(b) .
+  eq simplify((tt1 < tt1 + r) and b) = simplify(b) .
+  eq simplify((tt1 + r > tt1) and b) = simplify(b) .
+  eq simplify((tt1 + r >= tt1) and b) = simplify(b) .
+  eq simplify((tt1 === tt1) and b) = simplify(b) .
+  eq simplify((tt1 === tt2 + 0/1) and b) = simplify((tt1 === tt2) and b) .
+  eq simplify((tt1 >= tt2 + 0/1) and b) = tt1 >= tt2 and b .
+  eq simplify((tt1 > tt2 + 0/1) and b) = tt1 > tt2 and b .
+  eq simplify((tt1 >= tt2 + r) and (tt1 >= tt2) and b) =
+             (tt1 >= tt2 + r) and b .
+  eq simplify((tt1 >= tt2) and (tt1 >= tt2 + r) and b) =
+             (tt1 >= tt2 + r) and b .
+
+  eq simplify(b) = b [owise] .
+
+
+endfm
+
+
+fmod SYM-INTEGER is
+  pr INTEGER .
+  pr REAL-INTEGER .
+
+  vars rr1 rr2 rr3 : RSym .
+  vars ri1 ri2 ri3 : RSymInt .
+  var int : Integer .
+  var b : Boolean .
+
+  sorts RSym RSymInt .
+  subsort RSym Integer < RSymInt .
+
+  op _<=_ : RSymInt RSymInt -> Boolean  [ditto] .
+  op _>=_ : RSymInt RSymInt -> Boolean  [ditto] .
+  op _>_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _<_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _===_ : RSymInt RSymInt -> Boolean [ditto] .
+  op _=/==_ : RSymInt RSymInt -> Boolean [ditto] .
+
+  op -_ : RSymInt -> RSymInt [ditto] .
+  op _+_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _*_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _-_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _div_ : RSymInt RSymInt -> RSymInt [ditto] .
+  ---op _mod_ : RSymInt RSymInt -> RSymInt [ditto] .
+  op _?_:_ : Boolean RSymInt RSymInt -> RSymInt [ditto] .
+
+endfm
+
+fmod CONFIG is
+  inc SYM-REAL .
+  inc SYM-INTEGER .
+  pr NAT .
+  inc STRING .
+
+
+--- Service, Intruder, Scheduler and Player identifier
+  sorts Sid Iid SchdId Pid .
+  subsort Sid Iid SchdId < Pid .
+  op S : Nat -> Sid [ctor] .
+  op I : Nat -> Iid [ctor] .
+  op SC : Nat -> SchdId [ctor] .
+
+  op rr : Nat -> RSym .
+  op tt : Nat -> TimeSym .
+  op tw : Nat -> TimeSym .
+  op cur : -> TimeSym .
+
+
+--- Resources
+  sort Rid .
+  op R : Nat -> Rid [ctor] .
+
+  sort Resource ResourceS .
+  subsort Resource < ResourceS .
+  op res : Rid Nat -> Resource  [ctor] . --- identifier and amount of the resource
+  op none : -> ResourceS [ctor] .
+  op __ : ResourceS ResourceS -> ResourceS [ctor assoc comm id: none] .
+
+--- Actions
+  sort Aid .
+  op A : Nat -> Aid [ctor] .
+  sorts Action ActionS .
+  subsort Action < ActionS .
+  op none : -> ActionS [ctor] .
+  op __ : ActionS ActionS -> ActionS [ctor assoc comm id: none] .
+  op _;_;_ : Aid Rid Rid -> Action [ctor] . --- name of the action, resource that use, and resource that affects
+
+--- Messages (Using Sort for now)
+  sorts Msg MsgS .
+  subsort Msg < MsgS .
+  op none : -> MsgS [ctor] .
+  op __ : MsgS MsgS -> MsgS [ctor assoc comm id: none] .
+  op msg(_,_<-_) : TSymReal Pid Event -> Msg [ctor] .
+  --- result [MsgS]: msg(TR1:TSymReal,pid:Pid <- evt:Event)
+
+--- Events
+  sort Event .
+  op recover : RSymInt -> Event [ctor] .
+  op consume : RSymInt -> Event [ctor] .
+
+--- Players
+  sorts Service Intruder  Scheduler Player .
+  subsort Service Intruder Scheduler < Player .
+  op [_,_|_|_] : Sid Nat TSymReal RSymInt -> Service [ctor] .
+  --- id counter timeout resources
+  op [_,_|_|_] : Iid Nat TSymReal RSymInt -> Intruder [ctor] .
+  --- id counter recovery actions and resources
+--- Scheduler
+  op [_,_|_|_|_] : SchdId Nat TSymReal MsgS MsgS -> Scheduler [ctor] .
+--- Configuration
+  sort PlayerConf .
+  subsort Player < PlayerConf .
+  op none : -> PlayerConf [ctor] .
+  op __ : PlayerConf PlayerConf -> PlayerConf [ctor assoc comm id: none] .
+
+  sort Config .
+  op _!_!_!_ : PlayerConf TimeSym Boolean Boolean -> Config [ctor] .
+
+endfm
+
+mod META-TIME is
+  inc CONFIG .
+  inc META-LEVEL .
+  inc CONVERSION .
+
+  vars tr1 tr2 : TSymReal .
+  vars rr1 rr2 : RSymInt .
+  vars b1 b2 b : Boolean .
+  vars i : Nat .
+  vars tr res confT tcT : Term .
+  vars res? : [ResultPair] .
+  vars res1? : [ResultTriple] .
+  var tl : TermList .
+  var md : Module .
+  vars n n1 : Nat .
+  var bl : Bool .
+
+  op mkTimeSymVar : Nat -> Term .
+  eq mkTimeSymVar(i) = qid("rv" + string(i,10) + ":Real") .
+
+  op mkRSymVar : Nat -> Term .
+  eq mkRSymVar(i) = qid("iv" + string(i,10) + ":Integer") .
+
+  op toVarsR : TSymReal -> Term .
+  op toVarsB : Boolean -> Term .
+  op toVarsI : RSymInt -> Term .
+
+ eq toVarsR(r:Real) = upTerm(r:Real) .
+ eq toVarsR(tt(i)) = mkTimeSymVar(i) .
+ eq toVarsR(tw(i)) = mkTimeSymVar(i + 10000) .
+ eq toVarsR(- tr1) = '-_[toVarsR(tr1)] .
+ eq toVarsR(tr1 + tr2) = '_+_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 * tr2) = '_*_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 - tr2) = '_-_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 / tr2) = '_/_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(b ? tr1 : tr2) = '_?_:_[toVarsB(b),toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(toReal(toInt(tr1))) = 'toReal['toInteger[toVarsR(tr1)]] .
+
+ eq toVarsI(int:Integer) = upTerm(int:Integer) .
+ eq toVarsI(rr(i)) = mkRSymVar(i) .
+ eq toVarsI(- rr1) = '-_[toVarsI(rr1)] .
+ eq toVarsI(rr1 + rr2) = '_+_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 * rr2) = '_*_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 - rr2) = '_-_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(rr1 div rr2) = '_div_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsI(b ? rr1 : rr2) = '_?_:_[toVarsB(b),toVarsI(rr1),toVarsI(rr2)] .
+
+ eq toVarsB(b) = upTerm(b) [owise] .
+
+ eq toVarsB(tr1 <= tr2) = '_<=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 >= tr2) = '_>=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 < tr2) = '_<_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 > tr2) = '_>_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 === tr2) = '_===_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 =/== tr2) = '_=/==_[toVarsR(tr1),toVarsR(tr2)] .
+
+ eq toVarsB(rr1 <= rr2) = '_<=_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 >= rr2) = '_>=_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 < rr2) = '_<_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 > rr2) = '_>_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 === rr2) = '_===_[toVarsI(rr1),toVarsI(rr2)] .
+ eq toVarsB(rr1 =/== rr2) = '_=/==_[toVarsI(rr1),toVarsI(rr2)] .
+
+ eq toVarsB(b1 and b2) = '_and_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 or b2) = '_or_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 xor b2) = '_xor_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 implies b2) = '_implies_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 === b2) = '_===_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 =/== b2) = '_=/==_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b ? b1 : b2) = '_?_:_[toVarsB(b),toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(not b1) = 'not_[toVarsB(b1)] .
+
+endm
+
+mod EXE is
+  inc META-TIME .
+
+  var iid : Iid .
+  var aid : Aid .
+  var sid : Sid .
+  var pid : Pid .
+  var sc : SchdId .
+  var schd : Scheduler .
+  var acts : ActionS .
+  var resS : ResourceS .
+  var r1 r2 : Rid .
+  vars i j k l m n : Nat .
+  vars b b' b2 b3 b3' b4 b4' : Boolean .
+  vars timeout recovery delay T T1 : TSymReal .
+  vars rs1 rs2 rs1' : RSymInt .
+  vars msg2 msg3 : Msg .
+  vars msgs msgs2 : MsgS .
+  var pc pc' : PlayerConf .
+  var evt : Event .
+  var conf : Config .
+
+  crl[snd] :
+  [iid, j | recovery | rr(l)]
+  [sc, k | delay | none | msgs2]
+  [sid, i | timeout | rr(m)]
+  pc
+  ! tt(n) ! b ! b2
+  =>
+  [iid, s j | recovery | rr(k)]
+  [sc, s s k | delay | none | msgs2
+  msg(tt(s n) + delay, sid <- consume(rr(s k)))
+  msg(tt(s n) + recovery, iid <- recover(rr(s k)))]
+  [sid, i | timeout | rr(m)]
+  pc
+  ! tt(s n) ! b3 ! b4
+  if b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and (b)))
+  /\ b3 := simplify(b3')
+  /\ b4' := ((rr(s k) > 0) and ( (rr(l) - rr(k) === rr(s k)) and (b2)))
+  /\ b4 := simplify(b4') .
+
+  crl[consume] :
+  [sid, i | timeout | rr(l)]
+  [sc, k | delay | msgs msg(T, sid <- consume(rs1)) | msgs2 ]
+  pc ! tt(n) ! b ! b2
+  =>
+  [sid, s i | timeout | rr(k) ]
+  [sc, s s k | delay | msgs | msgs2
+  msg(tt(s n) + timeout, sid <- recover(rr(s k)))] pc !
+  tt(s n) ! b3 ! b4
+  if b4' := ((rr(s k) > 0) and ( (rr(l) - rr(k) === rr(s k)) and (b2)))
+  /\ b4 := simplify(b4')
+  /\ b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and  ( (tt(s n) >= T) and (b)))) --- possível redundância
+  /\ b3 := simplify(b3') .
+
+  crl[sidrec] :
+  [sid, i | timeout |  rr(l)]
+  [sc, k | delay | msgs msg(T, pid <- recover(rs1)) | msgs2] pc ! tt(n) ! b ! b2
+  =>
+  [sid, s i | timeout | rr(k)]
+  [sc, s k | delay | msgs | msgs2] pc ! tt(s n) ! b3 ! b4
+  if b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and  ( (tt(s n) >= T) and (b))))
+  /\ b3 := simplify(b3')
+  /\ b4' := ( (rr(l) + rs1 === rr(k)) and (b2))
+  /\ b4 := simplify(b4') .
+
+  crl[iidrec] :
+  [iid, i | recovery |  rr(l)]
+  [sc, k | delay | msgs msg(T, pid <- recover(rs1)) | msgs2] pc ! tt(n) ! b ! b2
+  =>
+  [iid, s i | recovery | rr(k)]
+  [sc, s k | delay | msgs | msgs2] pc ! tt(s n) ! b3 ! b4
+  if b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and  ( (tt(s n) >= T) and (b))))
+  /\ b3 := simplify(b3')
+  /\ b4' := ( (rr(l) + rs1 === rr(k)) and (b2))
+  /\ b4 := simplify(b4') .
+
+  op checkMsg : PlayerConf Boolean TSymReal -> Scheduler .
+
+  eq checkMsg(pc, b, T) = pc [owise] .
+
+  ceq checkMsg( [sc, k | delay | msgs | msg(T1, pid <- evt) msgs2 ] pc, b, T)
+      = checkMsg( [sc, k | delay | msgs msg(T1, pid <- evt) | msgs2] pc, b, T)
+  if b2 := ((T1 > T) and (b))
+  /\ not (metaCheck(['EXE], toVarsB(b2))) .
+
+  crl[buff] :
+  [sc, k | delay | none | msgs2 msg(T, pid <- evt)] pc
+  ! tt(n) ! b ! b2
+  =>
+  pc' ! tt(s n) ! b3 ! b2
+  if b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and ( (tt(s n) >= T) and (b))))
+  /\ b3 := simplify( b3' )
+  /\ pc' := checkMsg([sc, k | delay | msg(T, pid <- evt) | msgs2] pc, b3, T) .
+
+
+  op goal : Config -> Bool .
+  ceq goal( [sid, i | T1 | rs1] pc ! T ! b ! b2) = true
+  if b' :=  ( rs1 === 0 and (b2))
+  /\ metaCheck(['EXE], toVarsB( b') ) .
+  eq goal( conf ) = false  [owise] .
+
+endm
+
+mod PING-PONG is
+  inc EXE .
+
+  op initConf : -> Config .
+  eq initConf = [S(0),0 | tw(1) | rr(1) ]
+                [I(0),0 | tw(2) | rr(2) ]
+                [SC(0), 3 | tw(3) | none | none ] ! tt(4) !
+                (tt(4) >= 0/1 and
+                (tw(1) === 3/1 and
+                (tw(2) === 4/1 and
+                (tw(3) === 2/1 and (true))))) !
+                (rr(1) === 10 and
+                (rr(2) === 100 and (true))) .
+
+endm
+
+
+***(
+metaCheck(['EXE],toVarsB(b2))
+
+red metaCheck(['EXE'], toVarsB(tt(4) >= tt(3) and (tt(3) >= tt(2) + 1/1 and (tt(2) >= tt(4) and (true)))))
+
+srewrite [1] in PING-PONG : initConf using snd .
+
+rewrites: 4 in 4ms cpu (0ms real) (1000 rewrites/second)
+result [Config]: (
+               [S(0),0 | tw(1) | rr(1)]
+               [I(0),1 | tw(2) | rr(3)]
+               [SC(0),5 | tw(3) | none |
+               msg(tt(5) + tw(2),I(0) <- recover(rr(4))) msg(tt(5) + tw(3),S(0) <- consume(rr(4)))])
+              ! tt(5) !
+              tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(1) === (3/1).Real and (tw(2) === (4/1).Real and (tw(3) === (2/1).Real and true))))) !
+               (rr(4) > (0).Integer and (rr(2) - rr(3) === rr(4) and (rr(1) <= (10).Integer and (rr(2) <= (100).Integer and true))))
+
+srewrite[1] in PING-PONG : initConf using snd ; buff .
+
+Solution 1
+rewrites: 308 in 20ms cpu (19ms real) (15400 rewrites/second)
+result Config: ([S(0),0 | tw(1) | rr(1)] [I(0),1 | tw(2) | rr(3)] [SC(0),5 |
+    tw(3) | msg(tt(5) + tw(2),I(0) <- recover(rr(4))) msg(tt(5) + tw(3),S(0) <-
+    consume(rr(4))) | none]) ! tt(6) ! tt(6) >= (0/1).Real and (tt(6) >= tt(5)
+    and (tt(6) >= tt(5) + tw(2) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4)
+    and (tt(4) >= (0/1).Real and (tw(1) === (3/1).Real and (tw(2) === (
+    4/1).Real and (tw(3) === (2/1).Real and true)))))))) ! (rr(4) > (0).Integer
+    and (rr(2) - rr(3) === rr(4) and (rr(1) <= (10).Integer and (rr(2) <= (
+    100).Integer and true))))
+
+srewrite[1] in PING-PONG : initConf using snd ; buff ; iidrec .
+
+Solution 1
+rewrites: 312 in 8ms cpu (7ms real) (39000 rewrites/second)
+result Config: ([S(0),0 | tw(1) | rr(1)] [I(0),2 | tw(2) | rr(5)] [SC(0),6 |
+    tw(3) | msg(tt(5) + tw(3),S(0) <- consume(rr(4))) | none]) ! tt(7) ! tt(7)
+    >= (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(5) + tw(2) and (tt(6) >=
+    (0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + tw(2) and (tt(5) >= (
+    0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(1) === (
+    3/1).Real and (tw(2) === (4/1).Real and (tw(3) === (2/1).Real and
+    true))))))))))) ! (rr(3) + rr(4) === rr(5) and (rr(4) > (0).Integer and (
+    rr(2) - rr(3) === rr(4) and (rr(1) <= (10).Integer and (rr(2) <= (
+    100).Integer and true)))))
+
+srewrite[1] in PING-PONG : initConf using snd ; buff ; iidrec ; consume .
+
+Solution 1
+rewrites: 315 in 8ms cpu (7ms real) (39375 rewrites/second)
+result Config: ([S(0),1 | tw(1) | rr(6)] [I(0),2 | tw(2) | rr(5)] [SC(0),8 |
+    tw(3) | none | msg(tt(8) + tw(1),S(0) <- recover(rr(7)))]) ! tt(8) ! tt(8)
+    >= (0/1).Real and (tt(8) >= tt(7) and (tt(8) >= tt(5) + tw(3) and (tt(7) >=
+    (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(5) + tw(2) and (tt(6) >= (
+    0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + tw(2) and (tt(5) >= (
+    0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(1) === (
+    3/1).Real and (tw(2) === (4/1).Real and (tw(3) === (2/1).Real and
+    true)))))))))))))) ! (rr(7) > (0).Integer and (rr(1) - rr(6) === rr(7) and
+    (rr(3) + rr(4) === rr(5) and (rr(4) > (0).Integer and (rr(2) - rr(3) ===
+    rr(4) and (rr(1) <= (10).Integer and (rr(2) <= (100).Integer and
+    true)))))))
+
+    srewrite[1] in PING-PONG : initConf using snd ; buff ; iidrec ; consume ; buff .
+
+    Solution 1
+rewrites: 318 in 8ms cpu (7ms real) (39750 rewrites/second)
+result Config: ([S(0),1 | tw(1) | rr(6)] [I(0),2 | tw(2) | rr(5)] [SC(0),8 |
+    tw(3) | msg(tt(8) + tw(1),S(0) <- recover(rr(7))) | none]) ! tt(9) ! tt(9)
+    >= (0/1).Real and (tt(9) >= tt(8) and (tt(9) >= tt(8) + tw(1) and (tt(8) >=
+    (0/1).Real and (tt(8) >= tt(7) and (tt(8) >= tt(5) + tw(3) and (tt(7) >= (
+    0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(5) + tw(2) and (tt(6) >= (
+    0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + tw(2) and (tt(5) >= (
+    0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (tw(1) === (
+    3/1).Real and (tw(2) === (4/1).Real and (tw(3) === (2/1).Real and
+    true))))))))))))))))) ! (rr(7) > (0).Integer and (rr(1) - rr(6) === rr(7)
+    and (rr(3) + rr(4) === rr(5) and (rr(4) > (0).Integer and (rr(2) - rr(3)
+    === rr(4) and (rr(1) <= (10).Integer and (rr(2) <= (100).Integer and
+    true)))))))
+
+    srewrite[1] in PING-PONG : initConf using snd ; buff ; iidrec ; consume ; buff ; sidrec .
+    Solution 1
+rewrites: 321 in 8ms cpu (7ms real) (40125 rewrites/second)
+result Config: ([S(0),2 | tw(1) | rr(8)] [I(0),2 | tw(2) | rr(5)] [SC(0),9 |
+    tw(3) | none | none]) ! tt(10) ! tt(10) >= (0/1).Real and (tt(10) >= tt(9)
+    and (tt(10) >= tt(8) + tw(1) and (tt(9) >= (0/1).Real and (tt(9) >= tt(8)
+    and (tt(9) >= tt(8) + tw(1) and (tt(8) >= (0/1).Real and (tt(8) >= tt(7)
+    and (tt(8) >= tt(5) + tw(3) and (tt(7) >= (0/1).Real and (tt(7) >= tt(6)
+    and (tt(7) >= tt(5) + tw(2) and (tt(6) >= (0/1).Real and (tt(6) >= tt(5)
+    and (tt(6) >= tt(5) + tw(2) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4)
+    and (tt(4) >= (0/1).Real and (tw(1) === (3/1).Real and (tw(2) === (
+    4/1).Real and (tw(3) === (2/1).Real and true)))))))))))))))))))) ! (rr(6) +
+    rr(7) === rr(8) and (rr(7) > (0).Integer and (rr(1) - rr(6) === rr(7) and (
+    rr(3) + rr(4) === rr(5) and (rr(4) > (0).Integer and (rr(2) - rr(3) === rr(
+    4) and (rr(1) <= (10).Integer and (rr(2) <= (100).Integer and true))))))))
+
+search [1] initConf =>* conf:Config such that goal(conf:Config) .
+search [1] in PING-PONG : initConf =>* conf:Config such that goal(
+    conf:Config) = (true).Bool .
+
+Solution 1 (state 10)
+states: 11  rewrites: 3527 in 138ms cpu (143ms real) (25520
+    rewrites/second)
+conf:Config --> ([S(0),1 | tw(1) | rr(5)] [I(0),1 | tw(2) | rr(3)] [SC(
+    0),7 | tw(3) | msg(tt(5) + tw(2),I(0) <- recover(rr(4))) | msg(tt(
+    7) + tw(1),S(0) <- recover(rr(6)))]) ! tt(7) ! tt(7) >= (0/1).Real
+    and (tt(7) >= tt(6) and (tt(7) >= tt(5) + tw(3) and (tt(6) >= (
+    0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + tw(2) and (tt(
+    5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(4) >= (0/1).Real and (
+    tw(1) === (3/1).Real and (tw(2) === (4/1).Real and (tw(3) === (
+    2/1).Real and true))))))))))) ! (rr(6) > (0).Integer and (rr(1) -
+    rr(5) === rr(6) and (rr(4) > (0).Integer and (rr(2) - rr(3) === rr(
+    4) and (rr(1) === (10).Integer and (rr(2) === (100).Integer and
+    true))))))
+
+TODO:
+
+* Abraao: - modificar o goal (ver notes.txt)
+          - criar uma linguagem simples para protocolos:
+
+               Ex. extender a linguagem de ações para uma lista ou um mapping
+                   Nat -> Action.
+
+
+              [I, iid | prot(st1,1) ... prot(stn,n) | prot(1),...,pt(m) | ....]
+              [S, sid | prot(st1,1) ... prot(stk,k) | prot(1),...,pt(m) | ....]
+
+[I, iid | prot(name,st',id,nSym) Ps | PP | res | ....]
+[S, sid | prot(name,st'',id,nSym) Ps' | PP' | ....]
+[Schd, sid | msgs | msgs ]
+=>
+[I, iid | prot(st2,nSym) Ps | PP | res' | ....]
+[S, sid | prot(st'',nSym) Ps' | PP' | ....]
+[Schd, sid | msgs | msgs gerar timeout do Intruso ]
+if 
+  act acts  := protEsp(name,st')
+  name ; resCon ; resSer ; st2 ; timeout := act
+  res' - res == nSym * resCon and 
+  resSerConsume == nSym * resSer
+
+[I, iid | Ps | prot(name) PP | res | ....]
+[Schd, sid | msgs | msgs ]
+=>
+[I, (s iid) | prot(st2,nSym,iid) Ps | prot(name) PP | res' | ....]
+[Schd, sid | msgs | msgs <Ser | protInit(name,nSym,iid) <- resSerConsume> ]
+if 
+  act acts  := protEsp(name,1)
+  name ; resCon ; resSer ; st2 ; timeout := act
+  nSym > 0 and
+  res' - res == nSym * resCon and 
+  res' >= 0 and
+  resSerConsume == nSym * resSer
+
+[S, iid | Ps | prot(name) PP | resS | ....]
+[Schd, sid | <S | protInit(name,nSym,iid) <- resSerConsume | msgs | msgs  ]
+=>
+[S, iid | prot(name,1,nSym) Ps | prot(name) PP | resS' | ....]
+[Schd, sid | msgs | msgs <Ser, iid, T + timeout | recover(resSerConsume)> ]
+if
+  act acts  := protEsp(name,1)
+  name ; resCon ; resSer ; st2 ; timeout := act
+  resS' - resS == resSerConsume and 
+  resS' >= 0 
+
+[S, iid | Ps | prot(name) PP | resS | ....]
+[Schd, sid | <S | protInit(name,nSym,iid) <- resSerConsume | msgs | msgs  ]
+=>
+[S, iid | prot(name,1,nSym) Ps | prot(name) PP | resS | ....]
+[Schd, sid | msgs | msgs <Ser, iid, T + timeout | recover(resSerConsume)> ]
+if
+  act acts  := protEsp(name,1)
+  name ; resCon ; resSer ; st2 ; timeout := act
+  resS' - resS == resSerConsume and 
+  resS' >= 0 
+
+[S, iid | prot(name,st,iid) Ps | prot(name) PP | resS | ....]
+[Schd, sid | <S | protInit(name,nSym,iid) <- resSerConsume | msgs | msgs  ]
+! TT
+=>
+[S, iid | prot(name,1,nSym) Ps | prot(name) PP | resS | ....]
+[Schd, sid | msgs | msgs <Ser, T + timeout | recover(resSerConsume,iid)> ]
+! TT
+if
+  act acts  := protEsp(name,1)
+  name ; resCon ; resSer ; st2 ; timeout := act
+  resS' - resS == resSerConsume and 
+  resS' >= 0 
+  Schd' := renovar o timeout do protocolo chamado name
+
+  <S, iid, TSym | recover(rs) > -> <S, iid, TT + timeout | recover(rs) >
+
+
+Implementar a regra do timeout do Servidor: retirar o protocol session da lista do servidor e do intruso, mas recuperar recurso somente do servidor.
+
+Implementar a regra de completar um protocolo parecida com a regra do timeout do servidor.
+
+      act(1,GET-HTTP-INC) = GET-Incompleto ; 1 (banda) ; 1 worker ; Passo 1 ; 300 (timeout)
+      act(1,GET-HTTP) = GET-Completo ; 1 ; 1 ; 2 ; 300
+      act(2,GET-HTTP) = RSP-Completo ; 1 ; 1 ; 3 ; 300
+      act(3, GET-HTTP) = complete ; 300
+
+      timeout to intruso = 30
+
+
+* Como acomodar essa linguagem de protocolos nas reescritas.
+
+* Marcilio e Abraão: Exemplos!!!
+         - Slowloris  e análogis (POST, Slowread, etc)
+         - VoIP (novo)
+         - Amplification Attacks (José Messeguer ESORICS 2013??)
+         - AsymAttack (Memória)
+)
