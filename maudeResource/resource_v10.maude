@@ -1,5 +1,6 @@
 load smt .
 
+--- integracao com smt
 fmod SYM-REAL is
   pr REAL .
   pr REAL-INTEGER .
@@ -198,13 +199,16 @@ fmod CONFIG is
   op none : -> PExec [ctor] .
   op __ : PExecS PExecS -> PExecS [ctor assoc comm id: none] .
   op px : UPrid Iid Nid RSymInt -> PExec [ctor] .
+  --- quantos patches de protocolos
 
 --- Players
   sorts Service Intruder  Scheduler Player .
   subsort Service Intruder Scheduler < Player .
   op [_,_|_|_|_] : Sid Nat PExecS PridS RSymInt -> Service [ctor] .
+  --- id, qnts, protocolos rodando, qnts ele sabe, qnt de recursos que tem
   --- id counter timeout resources
   op [_,_|_|_] : Iid Nat RSymInt TimeSym -> Intruder [ctor] .
+  --- timesys = qnt tempo demora para recuperar
   --- id counter recovery actions and resources
 
 --- Configuration
@@ -219,10 +223,11 @@ fmod CONFIG is
   op __ : MSet MSet -> MSet [ ctor assoc comm id: none ] .
 
   op depleted : Sid RSymIntL TSymReal -> Marker [ctor] .
+  --- esse servico ta sem recurso
 
   sort Config .
   op _@_@_!_@_!_@_@_!_ : PlayerConf TimeSym MsgS MsgS Boolean Boolean MSet Nat Nat -> Config [ctor] .
-
+--- players, tempo atual, mensagens passadas, msg presente, boolean dos recursos, do tempo, set de mensagems e nat para controlar
 endfm
 
 mod META-TIME is
@@ -363,6 +368,7 @@ op numMsgs : MsgS -> Nat .
 eq numMsgs(none) = 0 .
 eq numMsgs(msg1 msgs) = s(numMsgs(msgs)) .
 
+---servico criar protocolo novo
 crl[pstart] :
     [sid, i | pxs | prid prids' | rr(m) ]
     [iid, j | rr(l) | TRec ]
@@ -370,27 +376,27 @@ crl[pstart] :
     =>
     [ sid, s i | px( UPR(prid, n1), iid, nid, rr(s s k) ) pxs | prid prids' | rr(s k)]
     [ iid, s j | rr(k) | TRec] pc @ tt(s n) @ none ! msgs2
-    msg( tt(s n) + timeoutT ; UPR(prid, n1) <- terminate( rr(s s s s k) ) )
-    msg(  tt(s n) + TRec ; UPR(prid, n1) <- recover(iid, rr(s s s k) ) )
-    @ b3 ! b4 @ mks' @ s s s s s k ! s n1
-    if < str, nid, rs1 > trsn := TFunction(prid, INIT)
-    /\ q< rs2, timeoutT > := RFunction(prid, nid)
-    /\ numPxs(pxs) < MAXPX
+    msg( tt(s n) + timeoutT ; UPR(prid, n1) <- terminate( rr(s s s s k) ) ) --- recupera os recursos para o servico
+    msg(  tt(s n) + TRec ; UPR(prid, n1) <- recover(iid, rr(s s s k) ) ) --- recursos recuprando para intruso
+    @ b3 ! b4 @ mks' @ s s s s s k ! s n1 --- tempo novo,
+    if < str, nid, rs1 > trsn := TFunction(prid, INIT) --- regra init
+    /\ q< rs2, timeoutT > := RFunction(prid, nid) --- quanto vai gastar manter neste node, ate tomar timeout
+    /\ numPxs(pxs) < MAXPX --- limite para nao ter mto protocolo NO SEMANTICS
     --- /\ ((numPxs(pxs) >= 1 and numMsgs(msgs2) >= 1) or n == 4)
-    /\ b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and (b)))
-    /\ b3'' := advanceTime(tt(s n),msgs2,b3')
+    /\ b3' := ((tt(s n) >= 0/1) and ( (tt(s n) >= tt(n)) and (b))) --- mudando o tempo, tt(s n) (add tempo)
+    /\ b3'' := advanceTime(tt(s n),msgs2,b3') --- retorna um boolean
     --- /\ b3'' := b3'
-    /\ b3 := simplify(b3'')
-    /\ b4' :=  ( ( rr(s s k) > 0) and
-               ( ( rr(s s s k) === rs1 * rr(s s k) ) and
-               ( ( rr(l) - rr(s s s k) === rr(k) ) and
+    /\ b3 := simplify(b3'') --- simplica o b3
+    /\ b4' :=  ( ( rr(s s k) > 0) and --- criou um protocolo, tem que consumir recurso
+               ( ( rr(s s s k) === rs1 * rr(s s k) ) and --- valor criado * qnts protocolos vai criar
+               ( ( rr(l) - rr(s s s k) === rr(k) ) and --- intruso tinha - gastou = qnt tem agora
                ( ( rr(k) >= 0 ) and
-               ( ( rr(s s s s k) === rs2 * rr(s s k) ) and
-               ( ( rr(m) - rr(s s s s k) === rr(s k) )  and
+               ( ( rr(s s s s k) === rs2 * rr(s s k) ) and --- SERVICE, qnts protocolos criados e se manter no node
+               ( ( rr(m) - rr(s s s s k) === rr(s k) )  and --- menos qnt gastou
                (  (rr( s k) >= 0) and (b2))))))))
     /\ b4 := simplify(b4')
-    /\ metaCheck(['EXE], toVarsB(b4))
-    /\ metaCheck(['EXE], toVarsB(b3))
+    /\ metaCheck(['EXE], toVarsB(b4)) --- availar se eh solucionavel
+    /\ metaCheck(['EXE], toVarsB(b3)) --- availar se eh solucionavel
     /\ mks' := putMarker(       [ sid, s i | px( UPR(prid, n1), iid, nid, rr(s s k)) pxs | prid prids' | rr(s k)]
                                 [ iid, s j | rr(k) | TRec] pc @ tt(s n) @ none ! msgs2
                                 msg( tt(s n) + timeoutT ; UPR(prid, n1) <- terminate( rr(s s s s k) ) )
