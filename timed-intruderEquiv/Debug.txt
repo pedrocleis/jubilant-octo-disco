@@ -1,0 +1,187 @@
+srewrite[1] initConf using newN ; newN ; snd ; buff ; rcv ; snd ; buff ; rcv ; snd; buff ; rcv ; snd ; buff ; trcv ; snd ; buff ; rcv ; snd ; buff ; rcv .
+
+result Config: ([h(0),6 | -(e({n(0, 0),ns(0, 1)}, sk(p("C")))) | sk(p("R"))]
+ [h(1),7 | (nil).evtList | sk(p("C"))]
+ [I(0),2 | p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(
+    1, 0) e({n(0, 0),ns(0, 1)}, sk(p("R"))) e({ns(1, 1),n(1, 0)}, sk(p("C"))) |
+    (none).TimedTS]
+ [I(1),3 | p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:1")) n(0, 0) n(
+    1, 0) e({n(0, 0),ns(0, 1)}, sk(p("R"))) e({ns(1, 1),n(1, 0)}, sk(p("C"))) |
+    (none).TimedTS]
+) ! tt(10) ! dc(ps(1, 0), z(p("I:1")) z(p("I:1"))) dc(ns(0, 1), z(p("C") p("R")
+    t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0))) dc(ns(1, 1),
+    z(p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:1")) n(0, 0))) ! tt(
+    10) >= tt(9) + 3/1 and (tt(9) >= tt(8) + 3/1 and (tt(8) <= tt(5) + 10/1 and
+    (tt(8) >= tt(7) + 3/1 and (tt(7) >= tt(6) + 3/1 and (tt(6) >= tt(5) + 3/1
+    and (tt(5) >= tt(4) + 3/1 and true)))))) ! 
+o({p("R"),t("SELECT-PAY")},(h(0),1),(I(0),1)) ; 
+o({p("R"),p("C"),t("SELECTION")},(I(0),0),(h(0),2)) ; 
+o({p("R"),p("C"),n(0, 0)},(h(0),3),(I(0),3)) ; 
+o({ps(1, 0),t("SELECT-PAY")},(I(1),0),(h(1),1)) ; 
+o({ps(1, 0),p("C"),t("SELECTION")},(h(1),2),(I(1),2)) ; 
+o({ps(1, 0),p("C"),ns(1, 1)},(I(1),1),(h(1),3)) ; 
+o({ps(1, 0),p("C"),ns(1, 1),n(1, 0)},(h(1),4),(I(1),4)) ; 
+o({p("R"),p("C"),n(0, 0),ns(0, 1)},(I(0),1),(h(0),4)) ; 
+o(e({n(0, 0),ns(0, 1)}, sk(p("R"))),(h(0),5),(I(0),5)) ; 
+o(e({ns(1, 1),n(1, 0)}, sk(ps(1, 0))),(I(1),2),(h(1),5)) ; 
+o(e({ns(1, 1),n(1, 0)}, sk(p("C"))),(h(1),6),(I(1),6))
+
+crl[rcv]:
+  [h(n), j | -(t), evtl | ks] [I(n),i | ts | tts ] pc ! T ! ds ! b ! exe
+  =>
+  [h(n), s j | ssb[[sb[[evtl]]]] | addKeys(t,sb0,ssb[[[ks]]])]
+  [I(n), s i | ssb[[[ts]]] | ssb[[[tts]]] ] 
+  ssbPC(ssb,pc) ! T
+  --- ssbPC(ssb,bufAdds(n,ts2,T,pc)) ! T 
+  ! ds0 ! b ! ssbExe(ssb,exe) ;  o(sb0[t],(I(n),i),(h(n),j)) 
+if {sb,{ssb,ds0} css} := sGen(n,i,t,ts,ds) 
+/\ sb0 := ssbRng(ssb,sb,mtS)
+/\ receivable(t,sb0,ks) 
+/\ ts0 := dom(ds) 
+/\ ts1 := dom(ds0) 
+/\ ts2 := minus(ts1,ts0) .  
+
+
+sGen(n,i,t,ts,ds) = {mtS,{(ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0),dc(ps(1, 0),z(p("I:1")) z(p("I:1")))}}
+
+sb = mtS
+ssb = (ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0)
+ds0 = dc(ps(1, 0),z(p("I:1")) z(p("I:1")))
+
+red sGen(0,
+2,
+(e({n(0, 0),ns(0, 1)}, sk(p("C")))),
+p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0) e({n(0, 0),ns(0, 1)}, sk(p("R"))) e({ns(1, 1),n(1, 0)}, sk(p("C"))),
+dc(ps(1, 0), z(p("I:1")) z(p("I:1"))) dc(ns(0, 1), z(p("C") p("R")t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0))) dc(ns(1, 1),z(p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:1")) n(0, 0))) ) .
+
+rewrites: 444 in 0ms cpu (0ms real) (~ rewrites/second)
+result SubstCSet: {mtS,{(ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0),dc(ps(1, 0),z(p("I:1")) z(p("I:1")))}}
+
+=========> sb0 = mtS
+
+red ssbRng((ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0),
+mtS, mtS) . 
+
+result Subst: mtS
+
+=========> receivable(t, sb0, ks) = true
+
+red receivable((e({n(0, 0),ns(0, 1)}, sk(p("C")))), 
+mtS,
+sk(p("R")) ) .
+
+result Bool: (true).Bool
+
+========> ts0 = ps(1, 0) ns(0, 1) ns(1, 1)
+
+red dom(dc(ps(1, 0), z(p("I:1")) z(p("I:1"))) dc(ns(0, 1), z(p("C") p("R")t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0))) dc(ns(1, 1),z(p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:1")) n(0, 0)))) .
+
+result TS: ps(1, 0) ns(0, 1) ns(1, 1)  [definition of DS in constraints, line 27]
+
+========> ts1 = ps(1, 0)
+
+red dom(dc(ps(1, 0),z(p("I:1")) z(p("I:1")))) .
+
+result nameSym: ps(1, 0)
+
+========> ts2 = none
+
+red minus(
+ps(1, 0),
+ps(1, 0) ns(0, 1) ns(1, 1) ) .
+
+result TS: (none).TS
+
+
+
+****************** TEST 1 ***************************
+[h(n), s j | ssb[[sb[[evtl]]]] | addKeys(t,sb0,ssb[[[ks]]])]
+[I(n), s i | ssb[[[ts]]] | ssb[[[tts]]] ] 
+ssbPC(ssb,pc) ! T ! ds0 ! b ! ssbExe(ssb,exe) ;  o(sb0[t],(I(n),i),(h(n),j))
+*****************************************************
+
+red mtS[(e({n(0, 0),ns(0, 1)}, sk(p("C"))))] .
+
+--> result T: e({n(0, 0),ns(0, 1)}, sk(p("C")))   <======= wat?? 
+
+op ssbRng : SSubst Subst Subst -> Subst .
+ eq ssbRng(ssb,mtS,sb)  = sb .
+ eq ssbRng(ssb,(v:Var := t) sb0,sb)  = 
+       ssbRng(ssb,sb0,sb (v:Var := ssb[t])) .
+
+
+sb0 := ssbRng(ssb,sb,mtS) .
+
+sb = mtS
+ssb = (ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0)
+
+---> Why sb = mtS ??? <---
+
+===========> sGen <===========
+
+sGen(0,
+2,
+(e({n(0, 0),ns(0, 1)}, sk(p("C")))),
+p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0) e({n(0, 0),ns(0, 1)}, sk(p("R"))) e({ns(1, 1),n(1, 0)}, sk(p("C"))),
+dc(ps(1, 0), z(p("I:1")) z(p("I:1"))) dc(ns(0, 1), z(p("C") p("R")t("SELECT-PAY") t("SELECTION") sk(p("I:0")) n(0, 0) n(1, 0))) dc(ns(1, 1),z(p("C") p("R") t("SELECT-PAY") t("SELECTION") sk(p("I:1")) n(0, 0))) ) .) .
+
+op sGen : Nat Nat T TS DSet -> SubstCSet .
+ceq sGen(n:Nat,i,t,ts,ds) =
+  {sb, sGen1(t0,ts,mtSS,ds)}
+if {j,sb} := genFresh(n:Nat,i,t,mtS) 
+/\ t0 := sb[t] .
+
+sort SubstCSet .
+op `{_`,_`} : Subst CSet -> SubstCSet .
+
+sGen(n,i,t,ts,ds)
+
+======> {j,sb} = {2,mtS} <=======
+
+---> Why sb = mtS ?? <---
+
+red genFresh(0, 2,
+(e({n(0, 0),ns(0, 1)}, sk(p("C")))),
+mtS) .
+
+result NatSubst: {2,mtS}
+
+======> t0 = e({n(0, 0),ns(0, 1)}, sk(p("C")))
+
+red mtS[(e({n(0, 0),ns(0, 1)}, sk(p("C"))))] .
+
+result T: e({n(0, 0),ns(0, 1)}, sk(p("C")))
+
+op genFresh : Nat Nat T Subst -> NatSubst .
+eq genFresh(i,j,var,sb) =
+   (if boundP(sb,var) 
+    then {j,sb}
+    else  genBndSym(i,j,var,sb)
+    fi) .
+eq genFresh(i,j,sk(v:nameVar),sb) =  genFresh(i,j, v:nameVar,sb) .
+eq genFresh(i,j,pk(v:nameVar),sb) =  genFresh(i,j, v:nameVar,sb) .
+
+eq genFresh(i,j,e(t,k),sb) = genFresh(i,j, {t,k},sb) .
+eq genFresh(i,j,{nil},sb) = {j,sb} .
+ceq genFresh(i,j,{t,tl},sb) = genFresh(i,j0,{tl},sb0)
+if {j0,sb0} := genFresh(i,j,t,sb) .
+
+op genBndSym : Nat Nat Var Subst -> NatSubst .
+eq genBndSym(i,j,v:TVar,sb) =     {s j, sb (v:TVar := vs(i,j))} .
+eq genBndSym(i,j,v:nameVar,sb) =  {s j, sb (v:nameVar := ps(i,j)) } .
+eq genBndSym(i,j,v:nonceVar,sb) = {s j, sb (v:nonceVar := ns(i,j))} .
+eq genBndSym(i,j,v:textVar,sb) =  {s j, sb (v:textVar := ts(i,j)) } .
+eq genBndSym(i,j,v:skeyVar,sb) =  {s j, sb (v:skeyVar := ks(i,j))} .
+
+red (ns(0, 1) :~ n(1, 0)) ns(1, 1) :~ n(0, 0)[e({n(0, 0),ns(0, 1)}, sk(p("C")))] .
+
+result T: e({n(0, 0),n(1, 0)}, sk(p("C")))
+
+eq genFresh(i,j,t,sb) = {j,sb}  [owise] .
+
+red genFresh(0, 2, {n(0, 0),ns(0, 1)}
+., mtS) .
+
+red genFresh(0, 2, sk(p("C")), mtS) .
+
+red genFresh(0, 2, n(0,0), mtS) .

@@ -1,0 +1,119 @@
+
+mod EXE-TEST is
+  inc EXE .
+  inc CONSTRAINTS-TEST .
+  inc PROTOCOL-TEST .
+
+ var evtl : evtList .
+ var i : Nat .
+ var namec : nameC .
+
+ ops init0 init1 : -> Config .
+ eq init0 = (mkHonest(1,rInit, 
+                       (pv("A") := p("A")) (pv("B") := p("B")))
+             mkHonest(2,rResp, (pv("B") := p("B")))
+             mkI) ! nil .
+
+ op mkH : Nat evtList nameC -> Honest .
+ eq mkH(i,evtl,namec) = [h(i), 0 | evtl | sk(namec)] .       
+
+ op mkI : -> Intruder .
+ eq mkI = [ I, 0 | sk(p("I")) | none ] .       
+
+ op mkIC : evtList -> Config .
+ eq mkIC(evtl) = mkH(1,evtl,p("A")) mkI ! nil .
+
+ op isDone : PlayerConf -> Bool .
+ op isDoneP : Player -> Bool .
+
+ eq isDone(none) = true .
+ eq isDone(pc:PlayerConf pl:Player) = 
+      (if isDoneP(pl:Player)
+       then isDone(pc:PlayerConf)
+       else false fi).
+
+ eq isDoneP([hid:Hid,i | nevtl:NeEvtList | ks:TS]) = false .
+ eq isDoneP(pl:Player) = true [owise] .
+
+ op isDoneH : Nat PlayerConf -> Bool .
+
+ eq isDoneH(i,[h(i),ix:Nat | (nil).evtList | ks:TS] pc:PlayerConf) 
+       = true .
+ eq isDoneH(i,pc:PlayerConf) = false [owise] .
+
+
+endm
+
+***(
+
+red ikAdd(p("A"),ik0) .
+red ikAdd(ps(0,1),ik0) == ik0 .
+red ikAdd(p("I"),ik0) == ik0 .
+red ikAdd(sM1,ik0) .
+red ikAdd(sM1i,ik0) .
+
+
+rew [1] mkIC(+({p("A"),n(1,0)})) .
+
+rew [1] mkIC(new(nv("A")), +({p("A"),nv("A")})) .
+
+rew [1] mkIC(-({p("B"),n(1,0)})) .
+
+rew [1] mkIC(new(nv("A")), +({p("A"),nv("A")}),-({p("B"),nv("A")})) .
+
+
+rew [1] mkIC(new(nv("A")),+(e({p("A"),nv("A")},pk(p("A")))),-(e({p("A"),nv("A")},pk(p("A"))))) .
+
+rew [1] mkIC(new(nv("A")),+(e({p("A"),nv("A")},pk(p("I")))),-(e({pv("A"),nv("I")},pk(p("A"))))) .
+
+search [1] mkIC(new(nv("A")),+(e({p("A"),nv("A")},pk(p("I")))),-(e({p("A"),nv("I")},pk(p("A"))))) =>+ pc:PlayerConf ! exe:Execution such that isDoneH(1,pc:PlayerConf) .
+
+rew [10] init0 .
+
+search [1] init0 =>+  pc:PlayerConf ! exe:Execution such that 
+isDoneH(1,pc:PlayerConf) .
+
+Solution 1 (state 18)
+pc:PlayerConf --> [h(1),4 | (nil).evtList | sk(p("A"))]
+ [h(2),3 | -(e(n(2, 0), pk(p("B")))) | sk(p("B"))]
+ [I,5 | sk(p("I")) e({n(1, 0),p("A")}, pk(p("B"))) e({n(1, 0),n(2, 0)}, pk(p(
+    "A"))) e(n(2, 0), pk(p("B"))) | (none).DSet]
+exe:Execution -->
+o(e({n(1, 0),p("A")}, pk(p("B"))),(h(1),1),(I,0)) ;
+o(e({n(1, 0),p("A")}, pk(p("B"))),(I,1),(h(2),1)) ;
+o(e({n(1, 0),n(2, 0)}, pk(p("A"))),(h(2),2),(I,2)) ;
+o(e({n(1, 0),n(2, 0)}, pk(p("A"))),(I,3),(h(1),2)) ;
+o(e(n(2, 0), pk(p("B"))),(h(1),3),(I,4))
+Maude> cont 1 .
+
+Solution 2 (state 19)
+pc:PlayerConf --> [h(1),4 | (nil).evtList | sk(p("A"))]
+ [h(2),4 | (nil).evtList | sk(p("B"))]
+ [I,6 | sk(p("I")) e({n(1, 0),p("A")}, pk(p("B"))) e({n(1, 0),n(2, 0)}, pk(p(
+    "A"))) e(n(2, 0), pk(p("B"))) | (none).DSet]
+
+exe:Execution -->
+o(e({n(1, 0),p("A")}, pk(p("B"))),(h(1),1),(I,0)) ;
+o(e({n(1, 0),p("A")}, pk(p("B"))),(I,1),(h(2),1)) ;
+o(e({n(1, 0),n(2, 0)}, pk(p("A"))),(h(2),2),(I,2)) ;
+o(e({n(1, 0),n(2, 0)}, pk(p("A"))),(I,3),(h(1),2)) ;
+o(e(n(2, 0), pk(p("B"))),(h(1),3),(I,4)) ;
+o(e(n(2, 0), pk(p("B"))),(I,5),(h(2),3))
+
+Maude> cont 1 .  nomore
+
+search [1] init0 =>+  pc:PlayerConf ! exe:Execution such that 
+isDoneH(2,pc:PlayerConf) .
+
+only Solution 2 of above
+
+search [1] init0 =>+  pc:PlayerConf ! exe:Execution such that isDone(pc:PlayerConf) .
+
+ditto
+)
+
+
+***(
+
+
+)

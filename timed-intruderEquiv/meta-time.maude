@@ -1,0 +1,93 @@
+mod META-TIME is
+ inc CONFIG .
+ inc META-LEVEL .
+ --- inc IMaude .
+
+ vars tr1 tr2 : TSymReal .
+ vars b1 b2 b : Boolean .
+ var i : Nat .
+ vars tr res confT tcT : Term .
+ vars res? : [ResultPair] .
+ vars res1? : [ResultTriple] .
+ var tl : TermList .
+ var md : Module .
+ vars n n1 : Nat .
+ var bl : Bool .
+ vars conf conf1 : Config .
+
+ op mkTimeSymVar : Nat -> Term .
+ eq mkTimeSymVar(i) = qid("rv" + string(i,10) + ":Real") . 
+
+ op toVarsR : TSymReal -> Term .
+ op toVarsB : Boolean -> Term .
+
+ eq toVarsR(r:Real) = upTerm(r:Real) .
+ eq toVarsR(tt(i)) = mkTimeSymVar(i) .
+ eq toVarsR(- tr1) = '-_[toVarsR(tr1)] .
+ eq toVarsR(tr1 + tr2) = '_+_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 * tr2) = '_*_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 - tr2) = '_-_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(tr1 / tr2) = '_/_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(b ? tr1 : tr2) = '_?_:_[toVarsB(b),toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsR(toReal(toInt(tr1))) = 'toReal['toInteger[toVarsR(tr1)]] .
+
+ eq toVarsB(b) = upTerm(b) [owise] .
+ eq toVarsB(tr1 <= tr2) = '_<=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 >= tr2) = '_>=_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 < tr2) = '_<_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 > tr2) = '_>_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 === tr2) = '_===_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(tr1 =/== tr2) = '_=/==_[toVarsR(tr1),toVarsR(tr2)] .
+ eq toVarsB(b1 and b2) = '_and_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 or b2) = '_or_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 xor b2) = '_xor_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 implies b2) = '_implies_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 === b2) = '_===_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b1 =/== b2) = '_=/==_[toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(b ? b1 : b2) = '_?_:_[toVarsB(b),toVarsB(b1),toVarsB(b2)] .
+ eq toVarsB(not b1) = 'not_[toVarsB(b1)] .
+
+ op getTimeCons : Config -> Term .
+ eq getTimeCons(pc:PlayerConf ! tt:TimeSym ! ds:DSet ! b:Boolean ! exe:Execution) = toVarsB(b:Boolean) .
+
+
+ op searchChild : Module Term TermList Nat -> TermList .
+ eq searchChild(md,tr,tl,n) = tl [owise] .
+  
+ ceq searchChild(md,tr,tl,n) = searchChild(md,tr,(res,tl), s n )
+  if res1? := metaSearch(md,tr,'foo:Config,nil,'+,1,n) 
+  /\ res1? :: ResultTriple 
+  /\ res := (getTerm(res1?),tl) .
+  
+  op satTimeCons : Module Term -> Bool .
+  ceq satTimeCons(md,confT) = bl:Bool 
+   if res? := metaReduce(md,'getTimeCons[confT])
+   /\ tcT := if res? :: ResultPair then 
+               downTerm(getTerm(res?),'false.Boolean) 
+             else 'false.Boolean fi
+   /\ bl:Bool := metaCheck(['REAL-INTEGER],tcT) .  
+
+  op bSearch  : Module Nat TermList -> TermList .
+  eq bSearch(md,n1,nil) = nil .
+  eq bSearch(md,0, tl) = tl .
+  eq bSearch(md,s n, (tr, tl)) =
+    if satTimeCons(md,tr) then
+     (if goal(md,tr) then tr else 
+       bSearch(md,n, (tl , searchChild(md,tr, empty, 0))) fi)
+    else bSearch(md,n, tl) fi .
+
+  op goal : Module Term -> Bool .
+  ceq goal(md,tr) = bl
+   if res? := metaReduce(md,'goalC[tr]) 
+   /\ res := if res? :: ResultPair then getTerm(res?) else 'false.Bool fi
+   /\ bl := (res == 'true.Bool) .
+
+  op search : Module Nat Config -> Config .
+  ceq search(md,n,conf) = if satTimeCons(md,confT) 
+                          then conf1 else search(md,s n,conf) fi
+  if res1? := metaSearch(md,upTerm(conf),'foo:Config,'goalC['foo:Config] = 'true.Bool, '+, unbounded, n) 
+  /\ confT := if res1? :: ResultTriple then 
+               getTerm(res1?) else upTerm(conf) fi 
+  /\ conf1 := downTerm(getTerm(res1?),conf) [print "search nat:" n] .
+
+endm

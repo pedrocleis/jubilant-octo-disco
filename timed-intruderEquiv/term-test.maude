@@ -1,0 +1,97 @@
+fmod TERM-TEST is
+  inc VAR-SUBST .
+  inc SYM-SUBST .
+
+***(
+A->B {na,A}_pk(B)
+B->A {na,nb}_pk(A)
+A->B {nb}_pk(B)
+
+A->B {na,A}_pk(B)
+B->A {na,nb,B}_pk(A)
+A->B {nb}_pk(B)
+
+)
+
+vars NA NB : nonce .
+vars A B : name .
+
+op m1 : nonce name name -> T .
+eq m1(NA,A,B) = e({NA,A},pk(B)) .
+
+op m2 : nonce nonce name -> T .
+eq m2(NA,NB,A) = e({NA,NB},pk(A)) .
+
+op m2l : nonce nonce name name -> T .
+eq m2l(NA,NB,A,B) = e({NA,NB,B},pk(A)) .
+
+op m3 : nonce name -> T .
+eq m3(NB,B) = e(NB,pk(B)) .
+
+op M1 : -> T .
+eq M1 = m1(nv("A"),pv("A"),pv("B")) .
+
+op M2 : -> T .
+eq M2 = m2(nv("A"),nv("B"),pv("A")) .
+
+op M2l : -> T .
+eq M2l = m2l(nv("A"),nv("B"),pv("A"),pv("B")) .
+
+op M3 : -> T .
+eq M3 = m3(nv("B"),pv("B")) .
+
+op sbNS : -> Subst .
+eq sbNS = (nv("A") := n(1,1)) (nv("B") := n(2,1)) 
+          (pv("A") := p("A")) (pv("B") := p("B"))  .
+
+
+op sbNSs : -> Subst .
+eq sbNSs = (nv("A") := ns(0,0)) (nv("B") := ns(0,1)) 
+          (pv("A") := ps(0,1)) (pv("B") := ps(0,2))  .
+
+op ssbNS : -> SSubst .
+eq ssbNS = (ns(0,0) :~ n(1,1) ) (ns(0,1) :~ n(2,1)) 
+          (ps(0,1) :~ p("A")) (ps(0,2) :~ p("B"))  .
+
+endfm
+
+***(
+
+red m1(n(1,1),p("A"),p("B")) .
+red m2(n(1,1),n(2,1),p("A")) .
+red m3(n(2,1),p("B")) .
+
+red intersect(n(1,1) p("A") p("B"), n(2,1) p("A") p("B")) .
+red intersect(n(1,1) p("C") p("B"), n(2,1) p("A") p("B")) .
+
+red sbNS[M1] .
+red sbNS[M1] == m1(n(1,1),p("A"),p("B"))  .
+
+red sbNS[M2] .
+red sbNS[M2] == m2(n(1,1),n(2,1),p("A")) .
+
+red sbNS[M2l] .
+
+red sbNS[M3] .
+red sbNS[M3] == m3(n(2,1),p("B")) .
+
+red sbNSs[M2l] .
+red ssbNS[sbNSs[M2l]] .
+red ssbNS[sbNSs[M2l]] == sbNS[M2l] .
+
+red boundP(sbNS,pv("A")) .
+red boundP(sbNS,kv("A")) .
+
+red boundP(ssbNS,ps(0,1)) .
+red boundP(ssbNS,ks(0,1)) .
+
+red unbind(sbNS,pv("A")) == (nv("A") := n(1,1)) (nv("B") := n(2,1)) (pv("B") := p("B")) .
+
+red unbind(sbNS,kv("A")) == sbNS .
+
+red unbind(ssbNS,ps(0,1)) == (ns(0, 0) :~ n(1,1)) (ns(0, 1) :~ n(2,1)) 
+(ps(0,2) :~ p("B")) .
+red unbind(ssbNS,ks(0,1)) == ssbNS .
+
+
+)

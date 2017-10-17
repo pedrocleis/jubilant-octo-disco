@@ -1,0 +1,101 @@
+***(
+)
+load term
+load constraints
+load protocol 
+load exe
+
+
+mod NS2 is
+  inc EXE .
+  inc ANALYSIS .
+  inc META-TIME .
+
+var conf : Config .
+var T : TimeSym .
+var b : Boolean .
+var exe : Execution .
+var pc : PlayerConf .
+var ds : DSet .
+vars nd1 nd2 : Node .
+vars t1 t2 : T .
+
+ops evInit0 evInit evResp0 evResp : -> NeEvtList .
+ops rInit rResp : ->  role .
+
+eq evInit = (new(nv("A")), evInit0) .
+eq evInit0 = ( +(e({nv("A"), pv("A")}, pk(pv("B")))),
+        -(e({nv("A"), nv("B")}, pk(pv("A")))),
+        +(e(nv("B"),pk(pv("B")))))  .
+
+eq evResp = (new(nv("B")), new(nv("B'")),evResp0) .
+eq evResp0 = ( -(e({nv("A"), pv("A")}, pk(pv("B")))),
+        +(e({nv("A"), nv("B")}, pk(pv("A")))),
+        -(e(nv("B"),pk(pv("B"))))) .
+
+eq rInit = r("initiator", pv("A"), pv("B"), evInit) .
+eq rResp = r("responder", pv("B"), nil, evResp) .
+
+op initPC : -> PlayerConf .
+
+eq initPC = mkHonest(0, rInit, ((pv("A") := p("A")) (pv("B") := p("B"))) )
+      mkHonest(1, rResp, pv("B") := p("B")) .
+
+op initPC2 : -> PlayerConf .
+
+op initConf : -> Config .
+
+eq initConf = initPC ! tt(4) ! none ! (tt(4) >= 0/1) and true ! nil .
+
+op initConf2 : -> Config .
+
+eq initConf = initPC2 ! tt(4) ! none ! (tt(4) >= 0/1) and true ! nil .
+
+--- temporary 
+op attack : PlayerConf -> Bool .
+eq attack( [i:Iid, n:Nat | ts:TS n(1,0) | tts:TimedTS ] pc:PlayerConf ) = true .
+
+
+op goalC : Config -> Bool .
+eq goalC(conf) =  isDone(getPC(conf)) .
+            
+
+endm
+
+***(
+
+  search[1] initConf =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+  Solution 1 (state 30)
+states: 31  rewrites: 7472 in 28ms cpu (26ms real) (266857 rewrites/second)
+c:Config --> ([h(0),(4).NzNat | (nil).evtList | sk(p("A"))]
+ [h(1),(5).NzNat | (nil).evtList | sk(p("B"))]
+ [I(0),(1).NzNat | sk(p("I:0")) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0, 0),n(1,
+    0)}, pk(p("A"))) e(n(1, 0), pk(p("B"))) | (none).TimedTS]
+ [I(1),(2).NzNat | sk(p("I:1")) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0, 0),n(1,
+    0)}, pk(p("A"))) e(n(1, 0), pk(p("B"))) | (none).TimedTS]
+) ! tt(7) ! none ! tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6)
+    + d(0, 1) and (tt(6) >= (0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5)
+    + d(1, 0) and (tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(5) >= tt(4)
+    + d(0, 1) and (tt(4) >= (0/1).Real and true))))))))) ! 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(h(0),1),(I(0),1)) ; 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(I(1),0),(h(1),2)) ; 
+o(e({n(0, 0),n(1, 0)}, pk(p("A"))),(h(1),3),(I(1),3)) ; 
+o(e({n(0, 0),n(1, 0)}, pk(p("A"))),(I(0),0),(h(0),2)) ; 
+o(e(n(1, 0), pk(p("B"))),(h(0),3),(I(0),3)) ; 
+o(e(n(1, 0), pk(p("B"))),(I(1),1),(h(1),4))
+
+ns2 completes normally
+
+  search[1] initConf =>* c:Config such that goalC(c:Config) = (true).Bool /\ attack(getPC(c:Config)) .
+
+
+
+--- The standard attack 
+A -> I {Na,A}KI
+I -> B {Na,A}KB
+B -> A {Na,Nb}KA
+A -> I {Nb}KI
+I -> B {Nb}KB
+
+)

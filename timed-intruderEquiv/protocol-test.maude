@@ -1,0 +1,32 @@
+fmod PROTOCOL-TEST is
+  inc PROTOCOL .
+  inc TERM-TEST .
+
+ops evInit0 evInit evResp0 evResp : -> NeEvtList .
+ops rInit rResp : ->  role .
+
+eq evInit = ( new(nv("A")), evInit0) .
+eq evInit0 = (+(M1), -(M2), +(M3)) .
+
+***(
+  +(e({nv("A"),pv("A")},pk(pv("B")))),
+  -(e({nv("A"),nv("B")},pk(pv("A")))),
+  +(e(nv("B"),pk(pv("B"))))  .
+)
+
+eq rInit = r("init", pv("A"), pv("B"), evInit ) .
+
+eq evResp = (new(nv("B")), evResp0) .
+eq evResp0 =  (-(M1), +(M2), -(M3)) .
+
+***(
+  -(e({nv("A"),pv("A")},pk(pv("B")))),
+  +(e({nv("A"),new(nv("B"),pv("B"),0)},pk(pv("A")))),
+  -(e(nv("B"),pk(pv("B")))) 
+)  
+
+eq rResp = r("resp", pv("B"), nil, evResp ) .
+
+
+
+endfm

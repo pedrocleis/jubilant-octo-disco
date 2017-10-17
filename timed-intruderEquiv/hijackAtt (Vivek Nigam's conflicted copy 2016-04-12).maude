@@ -1,0 +1,260 @@
+mod HIJACKATT is
+  inc EXE .
+  inc ANALYSIS .
+  inc META-TIME .
+
+var conf : Config .
+var T : TimeSym .
+var b : Boolean .
+var exe : Execution .
+var pc : PlayerConf .
+var ds : DSet .
+vars nd1 nd2 : Node .
+
+
+ops evInit0 evInit evResp0 evResp : -> NeEvtList .
+ops rInit rResp rInit2 : ->  role .
+
+eq evInit = (new(nv("A")), evInit0) .
+eq evInit0 = ( +(e({nv("A"), pv("A")}, pk(pv("B")))),
+				-(e({nv("A"), nv("B"), pv("B")}, pk(pv("A")))),
+				+(e(nv("B"),pk(pv("B")))), 
+				-(nv("B'")),
+				+({nv("B'"), nv("A")})	) .
+
+eq evResp = (new(nv("B")), new(nv("B'")),evResp0) .
+eq evResp0 = ( -(e({nv("A"), pv("A")}, pk(pv("B")))),
+				+(e({nv("A"), nv("B"), pv("B")}, pk(pv("A")))),
+				-(e(nv("B"),pk(pv("B")))), 
+				+(nv("B'") # tt(0) := cur), 
+				-(v("T") # cur <= tt(0) + 10/1),
+				eif v("T") ~ {nv("B'"), nv("A")} 
+				ethen +(t("DONE"))
+				eelse +(t("ERROR")) efi ) .
+
+eq rInit = r("initiator-terrorist", pv("A"), pv("B"), evInit) .
+eq rResp = r("responder", pv("B"), nil, evResp) .
+
+ops initPC initPC2 : -> PlayerConf .
+
+eq initPC = mkHonest(0, rInit, ((pv("A") := p("A")) (pv("B") := p("B"))) )
+			mkHonest(1, rResp, pv("B") := p("B")) .
+            
+eq initPC2 = mkHonest(0, rInit, ((pv("A") := p("A")) (pv("B") := p("E"))))
+            mkHonest(1, rResp, pv("B") := p("B"))
+            mkHonestKnowKnow(2, rResp, pv("B") := p("E"), none, sk(p("E"))) .
+
+ops initConf initConf2 : -> Config .
+
+eq initConf = initPC ! tt(4) ! none ! (tt(4) >= 0/1) and true ! nil .
+eq initConf2 = initPC2 ! tt(4) ! none ! (tt(4) >= 0/1) and true ! nil .
+
+
+eq d(0,1) = 4/1 .
+eq d(1,0) = 4/1 .
+
+eq d(0,2) = 11/1 .
+eq d(2,0) = 11/1 .
+
+eq d(1,2) = 11/1 .
+eq d(2,1) = 11/1 .
+
+op isCor : Config -> Bool .
+eq isCor(pc ! T ! ds ! b ! exe ; o( t("DONE"), (h(1), i:Nat), nd2)) = true .
+eq isCor(conf) = false [owise] .
+
+ops isDoneP2 isDoneP1 : PlayerConf -> Bool .
+eq isDoneP2([h(0),i:Nat | nevtl:NeEvtList | ks:TS] pc:PlayerConf) = false .
+eq isDoneP2([h(1),i:Nat | nevtl:NeEvtList | ks:TS] pc:PlayerConf) = false .
+eq isDoneP2(pc:PlayerConf) = true [owise] .
+
+eq isDoneP1([h(0),i:Nat | nevtl:NeEvtList | ks:TS] pc:PlayerConf) = false .
+eq isDoneP1(pc:PlayerConf) = true [owise] .
+
+
+
+op goalC : Config -> Bool .
+eq goalC(conf) =  isDoneP2(getPC(conf)) .
+            
+endm
+
+
+***(
+    search[1] initConf =>* c:Config such that isDoneP1(c:Config) = (true).Bool  .
+
+
+
+	search[1] initConf =>* c:Config such that goalC(c:Config) = (true).Bool /\ isCor(c:Config) = (true).Bool .
+
+	Solution 1 (state 85)
+states: 86  rewrites: 19127 in 108ms cpu (124ms real) (177101 rewrites/second)
+c:Config --> ([h(0),(6).NzNat | (nil).evtList | sk(p("A"))]
+ [h(1),(9).NzNat | (nil).evtList | sk(p("B"))]
+ [I(0),(2).NzNat | sk(p("I:0")) n(0, 0) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))) | (t("DONE") @ tt(8)
+    + 3/1) n(1, 1) @ tt(7) + 3/1]
+ [I(1),(3).NzNat | t("DONE") sk(p("I:1")) n(0, 0) n(1, 1) e({n(0, 0),p("A")},
+    pk(p("B"))) e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B")))
+    | (none).TimedTS]
+) ! tt(8) ! dc(ns(0, 1), z(sk(p("I:0")) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))))) ! tt(8) <= tt(7) +
+    (12/1).Real and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(7) >= (
+    0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) + (3/1).Real and (tt(6)
+    >= (0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + (3/1).Real and (tt(
+    5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(5) >= tt(4) + (3/1).Real and (
+    tt(4) >= (0/1).Real and true)))))))))))) ! 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(h(0),1),(I(0),1)) ; 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(I(1),0),(h(1),2)) ;
+--- msg1 : e({N("A"), p("A")}, pk("B")); 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(h(1),3),(I(1),3)) ; 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(I(0),0),(h(0),2)) ;
+--- msg2 : e({N("A"), N("B"), p("B")}, pk("A"));
+
+
+o(e(n(1, 0), pk(p("B"))),(h(0),3),(I(0),3)) ;
+--- msg3 ida: e(N("A"), pk("B")); A -> I;
+o(ns(0, 1),(I(0),1),(h(0),4)) ;
+--- msg4 ida: ns(0,1); :: I -> A 
+o({ns(0, 1),n(0, 0)},(h(0),5),(I(0),5)) ;
+--- msg5 ida: {ns(0,1), n(0,0)}; :: A -> I ==> n("B'") xor n("A")
+
+
+o(e(n(1, 0), pk(p("B"))),(I(1),1),(h(1),4)) ; 
+--- msg3 volta: e(N("A"), pk("B"));
+o(n(1, 1),(h(1),5),(I(1),5)) ;
+---  
+o(vs(1, 2),(I(1),2),(h(1),6)) ; 
+o(t("DONE"),(h(1),8),(I(1),8))
+
+search[1] initConf =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+Solution 1 (state 84)
+states: 85  rewrites: 19093 in 124ms cpu (127ms real) (153975 rewrites/second)
+c:Config --> ([h(0),(6).NzNat | (nil).evtList | sk(p("A"))]
+ [h(1),(8).NzNat | (nil).evtList | sk(p("B"))]
+ [I(0),(2).NzNat | sk(p("I:0")) n(0, 0) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))) | (t("ERROR") @ tt(
+    8) + 3/1) n(1, 1) @ tt(7) + 3/1]
+ [I(1),(3).NzNat | t("ERROR") sk(p("I:1")) n(0, 0) n(1, 1) e({n(0, 0),p("A")},
+    pk(p("B"))) e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B")))
+    | (none).TimedTS]
+) ! tt(8) ! dc(ns(0, 1), z(sk(p("I:0")) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))))) dc(vs(1, 2), z(sk(
+    p("I:1")) n(0, 0) n(1, 1) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0, 0),n(1,
+    0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))))) ! tt(8) <= tt(7) + (
+    12/1).Real and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(7) >= (
+    0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) + (3/1).Real and (tt(6)
+    >= (0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + (3/1).Real and (tt(
+    5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(5) >= tt(4) + (3/1).Real and (
+    tt(4) >= (0/1).Real and true)))))))))))) ! 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(h(0),1),(I(0),1)) ; 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(I(1),0),(h(1),2)) ; 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(h(1),3),(I(1),3)) ; 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(I(0),0),(h(0),2)) ; 
+o(e(n(1, 0), pk(p("B"))),(h(0),3),(I(0),3)) ; 
+o(ns(0, 1),(I(0),1),(h(0),4)) ; 
+o({ns(0, 1),n(0, 0)},(h(0),5),(I(0),5)) ; 
+o(e(n(1, 0), pk(p("B"))),(I(1),1),(h(1),4)) ; 
+o(n(1, 1),(h(1),5),(I(1),5)) ; 
+o(vs(1, 2),(I(1),2),(h(1),6)) ; 
+o(t("ERROR"),(h(1),7),(I(1),7))
+
+DONE with d(12/1)
+
+states: 81  rewrites: 18637 in 136ms cpu (217ms real) (137036 rewrites/second)
+c:Config --> ([h(0),(6).NzNat | (nil).evtList | sk(p("A"))]
+ [h(1),(9).NzNat | (nil).evtList | sk(p("B"))]
+ [I(0),(2).NzNat | sk(p("I:0")) n(0, 0) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))) | (t("DONE") @ tt(8)
+    + 12/1) n(1, 1) @ tt(7) + 12/1]
+ [I(1),(3).NzNat | t("DONE") sk(p("I:1")) n(0, 0) n(1, 1) e({n(0, 0),p("A")},
+    pk(p("B"))) e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B")))
+    | (none).TimedTS]
+) ! tt(8) ! dc(ns(0, 1), z(sk(p("I:0")) e({n(0, 0),p("A")}, pk(p("B"))) e({n(0,
+    0),n(1, 0),p("B")}, pk(p("A"))) e(n(1, 0), pk(p("B"))))) ! tt(8) <= tt(7) +
+    (10/1).Real and (tt(8) >= (0/1).Real and (tt(8) >= tt(7) and (tt(7) >= (
+    0/1).Real and (tt(7) >= tt(6) and (tt(7) >= tt(6) + (12/1).Real and (tt(6)
+    >= (0/1).Real and (tt(6) >= tt(5) and (tt(6) >= tt(5) + (12/1).Real and (
+    tt(5) >= (0/1).Real and (tt(5) >= tt(4) and (tt(5) >= tt(4) + (12/1).Real
+    and (tt(4) >= (0/1).Real and true)))))))))))) ! 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(h(0),1),(I(0),1)) ; 
+o(e({n(0, 0),p("A")}, pk(p("B"))),(I(1),0),(h(1),2)) ; 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(h(1),3),(I(1),3)) ; 
+o(e({n(0, 0),n(1, 0),p("B")}, pk(p("A"))),(I(0),0),(h(0),2)) ; 
+o(e(n(1, 0), pk(p("B"))),(h(0),3),(I(0),3)) ; 
+o(ns(0, 1),(I(0),1),(h(0),4)) ; 
+o({ns(0, 1),n(0, 0)},(h(0),5),(I(0),5)) ; 
+o(e(n(1, 0), pk(p("B"))),(I(1),1),(h(1),4)) ; 
+o(n(1, 1),(h(1),5),(I(1),5)) ; 
+o(vs(1, 2),(I(1),2),(h(1),6)) ; 
+o(t("DONE"),(h(1),8),(I(1),8))
+
+----------------------------/////------------------------------------
+
+rewrite in HIJACKATT : initConf .
+rewrites: 1849 in 0ms cpu (1ms real) (~ rewrites/second)
+result Config: ([h(0),(2).NzNat | -(e({n(0, 0),nv("B"),pv("B")}, pk(p("A")))),
+    +(e(nv("B"), pk(pv("B")))),-(nv("B'")),+({nv("B'"),n(0, 0)}) | sk(p("A"))]
+ [h(1),(4).NzNat | -(e(n(1, 0), pk(p("B")))),+(n(1, 1) # tt(0) := cur),-(v("T")
+    # cur <= tt(0) + (10/1).Real),eif v("T") ~ {n(1, 1),ns(1, 0)} ethen +(t(
+    "DONE")) eelse +(t("ERROR")) efi | sk(p("B"))]
+ [I(0),(0).Zero | sk(p("I:0")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(
+    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS]
+ [I(1),(1).NzNat | sk(p("I:1")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(
+    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS]
+) ! tt(6) ! dc(ns(1, 0), z(sk(p("I:1")))) ! tt(6) >= tt(5) and tt(6) >= tt(4) +
+    (30/1).Real and (tt(5) >= tt(4) + (30/1).Real and (tt(4) >= (0/1).Real and
+    true)) ! 
+o(e({n(0, 0),p("A")}, pk(pv("B"))),(h(0),1),(I(0),1)) ; 
+o(e({ns(1, 0),ps(1, 1)}, pk(p("B"))),(I(1),0),(h(1),2)) ; 
+o(e({ns(1, 0),n(1, 0),p("B")}, pk(ps(1, 1))),(h(1),3),(I(1),3))
+
+crl[rcv]:
+  [h(n), j | -(t), evtl | ks] [I(n),i | ts | tts ] pc ! T ! ds ! b ! exe
+  =>
+  [h(n), s j | ssb[[sb[[evtl]]]] | addKeys(t,sb0,ssb[[[ks]]])]
+  [I(n), s i | ssb[[[ts]]] | ssb[[[tts]]] ] 
+  ssbPC(ssb,pc) ! T
+  ! ds0 ! b ! ssbExe(ssb,exe) ;  o(ssb[sb0[t]],(I(n),i),(h(n),j)) 
+ if noNew(pc)
+ /\ noSnd(pc)
+ /\ {sb,{ssb,ds0} css} := sGen(n,i,t,ts,ds) 
+ /\ sb0 := ssbRng(ssb,sb,mtS)
+ /\ receivable(t,sb0,ks) .
+
+ h(0) receive
+
+ rew noNew(([h(0),(2).NzNat | -(e({n(0, 0),nv("B"),pv("B")}, pk(p("A")))),    +(e(nv("B"), pk(pv("B")))),-(nv("B'")),+({nv("B'"),n(0, 0)}) | sk(p("A"))] [h(1),(4).NzNat | -(e(n(1, 0), pk(p("B")))),+(n(1, 1) # tt(0) := cur),-(v("T")    # cur <= tt(0) + (10/1).Real),eif v("T") ~ {n(1, 1),ns(1, 0)} ethen +(t(    "DONE")) eelse +(t("ERROR")) efi | sk(p("B"))] [I(0),(0).Zero | sk(p("I:0")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS] [I(1),(1).NzNat | sk(p("I:1")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS])) .
+
+rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
+result Bool: (true).Bool
+
+ rew noSnd(([h(0),(2).NzNat | -(e({n(0, 0),nv("B"),pv("B")}, pk(p("A")))),    +(e(nv("B"), pk(pv("B")))),-(nv("B'")),+({nv("B'"),n(0, 0)}) | sk(p("A"))] [h(1),(4).NzNat | -(e(n(1, 0), pk(p("B")))),+(n(1, 1) # tt(0) := cur),-(v("T")    # cur <= tt(0) + (10/1).Real),eif v("T") ~ {n(1, 1),ns(1, 0)} ethen +(t(    "DONE")) eelse +(t("ERROR")) efi | sk(p("B"))] [I(0),(0).Zero | sk(p("I:0")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS] [I(1),(1).NzNat | sk(p("I:1")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(    1, 0),p("B")}, pk(ps(1, 1))) | (none).TimedTS])) .
+
+rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
+result Bool: (true).Bool
+
+ rew sGen(0, 0, e({n(0, 0),nv("B"),pv("B")}, pk(p("A"))),  sk(p("I:0")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(1, 0),p("B")}, pk(ps(1, 1))), dc(ns(1, 0), z(sk(p("I:1")))) ) .
+
+ rewrite in HIJACKATT : sGen(0, 0, e({n(0, 0),nv("B"),pv("B")}, pk(p("A"))), sk(
+    p("I:0")) e({n(0, 0),p("A")}, pk(pv("B"))) e({ns(1, 0),n(1, 0),p("B")}, pk(
+    ps(1, 1))), dc(ns(1, 0), z(sk(p("I:1"))))) .
+rewrites: 370 in 0ms cpu (0ms real) (~ rewrites/second)
+result SubstCSet: {(nv("B") := ns(0, 0)) pv("B") := ps(0, 1),(none).CSet}
+
+
+ {sb, {ssb,ds0} css} := {(nv("B") := ns(0, 0)) pv("B") := ps(0, 1),(none).CSet}
+
+rew ssbRng(mtSS, (nv("B") := ns(0, 0)) pv("B") := ps(0, 1), mtS ) .
+
+ sb0 = (nv("B") := ns(0, 0)) pv("B") := ps(0, 1)
+
+rew receivable(e({n(0, 0),nv("B"),pv("B")}, pk(p("A"))), (nv("B") := ns(0, 0)) pv("B") := ps(0, 1), sk(p("A"))) .
+
+result Bool: (true).Bool
+
+ h(1) receive
+
+
+
+)
