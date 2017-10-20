@@ -1,0 +1,90 @@
+mod DEBUG-TEST is
+inc EXE .
+inc ANALYSIS .
+inc META-TIME .
+
+var conf : Config .
+ops evDebug0 evDebug : -> NeEvtList .
+op rDebug : -> role . 
+
+eq evDebug0 = ( +(t("begin") # tt(0)) , event({t("teste") # cur <= tt(0) + 10/1})) .
+eq rDebug = r("init", pv("A"), pv("A"), evDebug0) .
+
+op debugPC : -> PlayerConf .
+eq debugPC = mkHonest(0, rDebug, pv("A") := p("A")) .
+
+op debugConf : -> Config .
+eq debugConf = debugPC ! tt(4) ! none ! true ! nil .
+
+op goalC : Config -> Bool .
+eq goalC(conf) = isDone(getPC(conf)) .
+
+
+endm
+
+mod META-TEST3 is
+  inc META-TIME .
+  inc DEBUG-TEST .
+
+endm 
+
+***(
+search [1] in META-TEST2 : initConf =>* c:Config such that goalC(c:Config) = (true).Bool .
+search [1] in META-TEST2 : initConf2 =>* c:Config such that goalC(c:Config) = (true).Bool .
+search [1] in META-TEST2 : initConf3 =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+rewrites: 168 in 0ms cpu (0ms real) (~ rewrites/second)
+result Config: ([h(0),3 | ifElse(vs(0, 0) == n(0, 0), +(n(0, 0)), +(t("FAIL")))
+    | sk(p("A"))]
+ [I(0),1 | sk(p("I:0")) e(n(0, 0), sk(p("A"))) | (none).TimedTS]
+) ! tt(4) ! dc(vs(0, 0), z(sk(p("I:0")) e(n(0, 0), sk(p("A"))))) ! true ! 
+o(e(n(0, 0), sk(p("A"))),(h(0),1),(I(0),1)) ; 
+o(vs(0, 0),(I(0),0),(h(0),2))
+
+red resolutions(vs(0,0), n(0,0), mtSSS ) .
+
+rewrites: 17 in 0ms cpu (0ms real) (~ rewrites/second)
+result SSubstSet: z(vs(0, 0) :~ n(0, 0))
+
+red resCheck(z(vs(0, 0) :~ n(0, 0)), mtSS, dc(vs(0, 0), z(sk(p("I:0")) e(n(0, 0), sk(p("A"))))), none ) .
+
+rewrites: 32 in 0ms cpu (0ms real) (~ rewrites/second)
+result CSet: (none).CSet
+
+CASE A [initConf] : 
+search [1] in META-TEST2 : initConf =>* c:Config such that goalC(c:Config) = (true).Bool .
+Solution 1 (state 6)
+states: 7  rewrites: 319 in 0ms cpu (0ms real) (~ rewrites/second)
+c:Config --> ([h(0),4 | (nil).evtList | sk(p("A"))]
+ [I(0),1 | t("FAIL") sk(p("I:0")) e(n(0, 0), sk(p("A"))) | (none).TimedTS]
+) ! tt(4) ! dc(vs(0, 0), z(sk(p("I:0")) e(n(0, 0), sk(p("A"))))) ! true ! 
+o(e(n(0, 0), sk(p("A"))),(h(0),1),(I(0),1)) ; 
+o(vs(0, 0),(I(0),0),(h(0),2)) ; 
+o(t("FAIL"),(h(0),3),(I(0),3))
+
+CASE B [initConf2] :
+search [1] in META-TEST2 : initConf2 =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+Solution 1 (state 5)
+states: 6  rewrites: 233 in 0ms cpu (0ms real) (~ rewrites/second)
+c:Config --> ([h(0),4 | (nil).evtList | sk(p("A"))]
+ [I(0),1 | sk(p("I:0")) n(0, 0) e(n(0, 0), sk(p("A"))) | (none).TimedTS]
+) ! tt(4) ! dc(vs(0, 0), z(sk(p("I:0")) e(n(0, 0), sk(p("A"))))) ! true ! 
+o(e(n(0, 0), sk(p("A"))),(h(0),1),(I(0),1)) ; 
+o(vs(0, 0),(I(0),0),(h(0),2)) ; 
+o(n(0, 0),(h(0),3),(I(0),3))
+
+CASE C [initConf3] :
+search [1] in META-TEST2 : initConf3 =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+Solution 1 (state 5)
+states: 6  rewrites: 304 in 0ms cpu (0ms real) (~ rewrites/second)
+c:Config --> ([h(0),4 | (nil).evtList | sk(p("A"))]
+ [I(0),1 | sk(p("I:0")) n(0, 0) e(n(0, 0), sk(p("A"))) | (none).TimedTS]
+) ! tt(4) ! dc(vs(0, 0), z(sk(p("I:0")) e(n(0, 0), sk(p("A"))))) ! true ! 
+o(e(n(0, 0), sk(p("A"))),(h(0),1),(I(0),1)) ; 
+o(vs(0, 0),(I(0),0),(h(0),2)) ; 
+o(n(0, 0),(h(0),3),(I(0),3))
+
+
+)

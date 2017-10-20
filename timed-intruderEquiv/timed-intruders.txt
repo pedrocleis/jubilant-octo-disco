@@ -1,0 +1,56 @@
+* Configuration have a global time
+
+    [hid, j | -(t), evtl | ks] [iid,i | ts | ds ] pc ! exe @ T
+
+* Receive rule
+
+crl[rcv]:
+  [hid, j | -(t), evtl | ks] [iid,i | ts | ds ] pc ! exe @ T
+  =>
+  [hid, s j | ssb[[sb[[evtl]]]] | addKeys(t,sb0,ssb[[[ks]]])] [iid(hid), s i | ssb[[[ts]]] | ds0 ] ssbPC(ssb,pc)
+! ssbExe(ssb,exe) ;  o(sb0[t],(I,i),(hid,j)) @ T'
+if {sb,{ssb,ds0} css} := sGen(i,t,ts,ds) 
+/\ sb0 := ssbRng(ssb,sb,mtS)
+/\ receivable(t,sb0,ks) 
+/\ T' >= T 
+/\ T' >= timesVars(sb0[t]) . 
+
+         T1 T2 T3 ... Tn
+
+/\ T' >= T1
+/\ T' >= T2
+...
+/\ T' >= Tn .         
+
+crl[rcv]:
+  [hid, j | -(t)@(T0 + n), evtl | ks] [iid,i | ts | ds ] pc ! exe @ T
+  =>
+  [hid, s j | ssb[[sb[[evtl]]]] | addKeys(t,sb0,ssb[[[ks]]])] [iid(hid), s i | ssb[[[ts]]] | ds0 ] ssbPC(ssb,pc)
+! ssbExe(ssb,exe) ;  o(sb0[t],(I,i),(hid,j)) @ T'
+if {sb,{ssb,ds0} css} := sGen(i,t,ts,ds) 
+/\ sb0 := ssbRng(ssb,sb,mtS)
+/\ receivable(t,sb0,ks) 
+/\ T' >= T 
+/\ T' <= T0 + n
+/\ T' >= timesVars(sb0[t]) . 
+
+         T1 T2 T3 ... Tn
+
+/\ T' >= T1
+/\ T' >= T2
+...
+/\ T' >= Tn .         
+
+* Intruder sharing
+
+rl[snd]:
+  [hid, j | +(t), evtl | ks] [iid,i | ts | ds ] pc 
+  ! exe @ T
+  =>
+  [hid, s j | evtl | ks] [iid(hid), s i | ikAdd(t,ts,T) | ds ] pc
+  ! exe ; o(t,(hid,j),(iid,i)) @ T 
+/\ ikAddOther(t,iid,T,pc)
+  .
+
+
+

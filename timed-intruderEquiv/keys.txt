@@ -1,0 +1,87 @@
+ks needs to be lazy 
+ ... ki ...  e(tj,kj)  ...
+
+    tvars restricted to atoms
+    tval an unspecified value   
+when ssb applied -- check to see if any e's can be decrptyed
+
+consider e(tv,k)  
+xsb(sb,tv)  = sb(tv) if sb(tv) :: Atom U TSym
+            = tval     if sb(tv) is pair or encr
+
+xssb(ssb,tsym) =  ssb(tsym) if ssb(tsym) is atom or sym
+                  tval it ssb(tsym) is pair or encr
+        
+  op receivable : T Subst TS -> Bool .
+  eq receivable(v:Var,sb,ks) = true .
+  eq receivable(c:baseC,sb,ks) = true .
+  eq receivable(s:Sym,sb,ks) = true .
+
+  eq receivable(e(t,k),sb,ks) = inv(sb[k]) in ks .
+  eq receivable({nil},sb,ks) = true .
+  eq receivable({t,tl},sb,ks) = 
+      receivable(t,sb,ks) and receivable({tl},sb,ks) .
+
+!!! may need to refine sb* ssb ds1 to make match receivable
+ var tvar : TVar .
+ var tsym : TSym .
+
+**** adding keys to player knowledge
+**** need to not look inside values of term variables (or refinements of TSyms)
+  op addKeys : T Subst TS -> TS .
+  op addKeysX : T Subst TS -> TS .
+  eq addKeys(t,sb,ts) = addKeysX(t,xsb(sb),ks) .
+  eq addKeys(k,sb,ks) = setAdd(sb[k],ks) .
+  eq addKeys({nil},sb,ks) = ks .
+  eq addKeys({t,tl},sb,ks) = addKeys({tl},sb,addKeys(t,sb,ks)) .
+  eq addKeys(e(t,k),sb,ks) =
+       (if inv(sb[k]) in ks then addKeys(t,sb,ks) else sb[e(t,k)] ks fi) .
+  eq addKeys(tvar,sb,ks) =
+       (if sb[tvar] :: key or sb[tvar] :: TSym 
+        then setAdd(sb(tvar),ks) 
+        else ks fi) .
+  eq addKeys(tsym,sb,ks) = setAdd(tsym,ks)
+  eq addKeys(t,sb,ks) = ks [owise] .
+
+
+  op xsb : Subst -> Subst .
+  op xsbX : TVar T -> Subst .
+  eq xsb(sb (tvar := t)) = xsb(sb) xsbX(tvar,t) .
+  eq xsb(sb) = sb [owise] .
+  eq xsbX(tvar,b:base) = (tvar := b:base) .
+  eq xsbX(tvar,s:Sym) = (tvar := s:Sym) .
+  eq xsbX(tvar,t) = mtS  [owise] .  *** a pair or encryption
+
+**** 
+Let ks be a set of concrete keys, symbols and (visible) encryptions
+Let ssb be a symbol refinement. 
+If ssb(sym) == k and sym e(t,k) in ks then look for keys in t 
+If k, e(t,sym) in ks (sym not in ks) also look for new keys in t
+
+xKeys(e(t,k) inv(k) ks) = xKeys(t ks)
+xKeys(b:base ks) = xKeys(ks)  if not(b:base :: key)
+xKeys({t,tl} ks) = xKeys(t {tl} ks) .
+xKeys(ks) = ks [owise] .
+
+addKeysX(t,sbx,ks) vs xKeys(sbx(t) ks)
+
+
+**** adding intruder knowledge
+  op ikAdd : T TS -> TS .
+***  eq ikAdd(t, t ts) = t ts .
+  eq ikAdd(b:base, ts) = setAdd(b:base, ts) .
+  eq ikAdd(s:Sym, ts) = setAdd(s:Sym, ts) .
+        **** s:Sym is already implicitly in intruders ts
+  eq ikAdd({nil}, ts) = ts .
+  eq ikAdd({t,tl}, ts) = ikAdd({tl},ikAdd(t,ts)) .
+  eq ikAdd(e(t,k), ts) = 
+      (if inv(k) in ts 
+       then ikAdd(t, setAdd(e(t,k), ts)) *** only need e(t,k) if k is sk(a)
+       else setAdd(e(t,k), ts) fi) .
+
+****
+Given ts* that is decomposed and ssb refining the symbol constraints,
+is it possible the ssb[[ts*]] is no longer decomposed.
+For example ssb[[sym]] == k (symmetric) and e(t,sym)  or e(t,k) is in ts*
+k  is `in' ts*  (either another symbol or an allowed value of sym)
+It seems refinement does not need further decomposition.

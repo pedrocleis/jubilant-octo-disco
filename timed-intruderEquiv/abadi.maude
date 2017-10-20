@@ -1,0 +1,155 @@
+***(
+This protocol is based in one of the protocols proposed by Abadi etal in Private Authentication. In the
+protocol, I hava a secret set S of Players, and A wants to talk to B. if A and B belongs to S, they should 
+be able to initiate communications without third parties knowing that A and B belongs to S. In any other 
+scenario, no one should be able to know, in any way, wether A or B belongs to S.
+
+A broadcasts m1 : "hello", e({"hello", NA, KA}, KB) 
+B receives m1 : C checks if its not a replay attack and tries to decrypt the encrypted part of m1 using
+its private key. If the decryption succeds, C will have NA and the key KA, and checks if A belongs to S.
+If so, it generates a fresh nonce, encrypts it, and sends it out in m2 :
+ m2 : "ack", e({"ack", NA, NB, KB}, KA).
+
+ In any other case, whether B can't decrypt m1 with its private key, or A doesnt belong to S, it will
+ generate the decoy message m3 :
+ m3 : "ack", e(N, K)
+ where N is a freshly generated nonce, and only B has the inverse of K.
+
+ In the paper Timed Model Checking of Security Protocols, Corin etal comments that this protocol, when time
+ is taken into consideration, its not safe, since, from the difference in time between the response of certain
+ players in the network, an intruder can tell if that player in particular belongs or not to the supposedly
+ secret set S.
+
+)
+
+mod ABADI is
+  inc EXE .
+  inc ANALYSIS .
+  inc META-TIME .
+
+var conf : Config .
+
+ops evResp : -> NeEvtList .
+ops KB KA : -> skeyC .
+ops dEnc dCheck dCreate : -> TSymReal .
+
+***(
+eq evResp = (-({t("hello"), v("G"),v("M")} # tt(0) := cur),
+              eif v("G") ~ KB # tt(1) := tt(0) + dEnc
+              ethen
+                (eif v("M") ~ S # tt(2) := tt(1) + dCheck
+                ethen +({t("ack"), t("M")} # cur === tt(2) + dCreate)
+                eelse +({t("ack"), t("M")} # cur === tt(2)) efi)
+              eelse +({t("ack"), t("M")} # cur === tt(1)) efi
+              ) .
+)
+
+***(
+eq evResp = (-({t("hello"), e(v("G"), kv("M"))} # tt(0) := cur),
+              eif kv("M") ~ KB # tt(1) := tt(0) + dEnc
+              ethen
+                (eif v("G") ~ S # tt(2) := tt(1) + dCheck
+                ethen +({t("ack"), t("M")} # cur === tt(2) + dCreate)
+                eelse +({t("ack"), t("M")} # cur === tt(2)) efi)
+              eelse +({t("ack"), t("M")} # cur === tt(1)) efi
+              ) .
+
+)
+--- Im assuming here the A is the only player that belongs to S .
+eq evResp = (-({t("hello"), e({t("hello"), nv("A"),v("G")}, kv("M"))} # tt(0) := cur),
+              eif kv("M") ~ KB # tt(1) := tt(0) + dEnc
+              ethen
+                (eif v("G") ~ {KA} # tt(2) := tt(1) + dCheck
+                ethen +({t("ack"), t("M")} # cur === tt(2) + dCreate)
+                eelse +({t("ack"), t("M")} # cur === tt(2)) efi)
+              eelse +({t("ack"), t("M")} # cur === tt(1)) efi
+              ) .
+
+
+--- e(v("G"), v("M")) doesn't work with mkHonest? [TEMP]
+
+
+eq dEnc = tt(3) .
+eq dCheck = tt(4) .
+eq dCreate = tt(5) .
+
+ops rResp : ->  role .
+eq rResp = r("responder", pv("A"), nil ,evResp) .
+
+
+ops initPC wrongPC membershipPC : -> PlayerConf .
+--- in here, initPC is a configuration when the receiver isn't the one who was supposed to receive it.
+eq initPC = mkHonest(0, rResp, mtS) .
+--- the wrong PC reflects when the receiver is the one who is supposed to receive the message, but the sender
+--- doesn't belong to S
+eq wrongPC = mkHonestKnowKnow(0, rResp, mtS, none, KB) .
+--- membershipPC reflects the run where everything went according to plan, i.e the receiver is the expected
+--- and the sender belongs to S.
+eq membershipPC = mkHonestKnowKnow(0, rResp, mtS, none, KB KA) .
+
+
+ops initConf wrongConf membershipConf : -> Config .
+eq initConf = initPC ! tt(6) ! none ! (tt(6) >= 0/1 and 
+   (dEnc === 2/1 and (dCheck === 1/1 and (dCreate === 1/1 and (true))))) ! nil .
+
+eq wrongConf = wrongPC ! tt(6) ! none ! (tt(6) >= 0/1 and 
+   (dEnc === 2/1 and (dCheck === 1/1 and (dCreate === 1/1 and (true))))) ! nil .
+
+eq membershipConf = membershipPC ! tt(6) ! none ! (tt(6) >= 0/1 and 
+   (dEnc === 2/1 and (dCheck === 1/1 and (dCreate === 1/1 and (true))))) ! nil .
+
+op goalC : Config -> Bool .
+eq goalC(conf) =  isDone(getPC(conf)) .
+
+endm
+
+***(
+
+search[1] initConf =>* c:Config such that goalC(c:Config) = (true).Bool .
+
+Solution 1 (state 3)
+states: 4  rewrites: 494 in 24ms cpu (117ms real) (20583 rewrites/second)
+c:Config --> ([h(0),(2).NzNat | (nil).evtList | sk(pv("A"))]
+ [I(0),(1).NzNat | t("M") t("ack") sk(p("I:0")) | (none).TimedTS]
+) ! tt(7) ! dc(vs(0, 0), z(sk(p("I:0")))) ! tt(7) === tt(1) + tt(3) and (tt(7)
+    >= (0/1).Real and (tt(7) >= tt(6) and (tt(6) >= (0/1).Real and (tt(3) === (
+    2/1).Real and tt(4) === (1/1).Real) and (tt(5) === (1/1).Real and true))))
+    ! 
+o({t("hello"),vs(0, 0)},(I(0),0),(h(0),0)) ; 
+o({t("ack"),t("M")},(h(0),1),(I(0),1))
+
+
+--------------------------NEEDS meta-ver loaded ------------------
+reduce obsequiv( ['ABADI], initConf, wrongConf) .  (needs to change the name obsequiv in this version)
+
+reduce in META-VER : obsequiv(['ABADI], initConf, wrongConf) .
+rewrites: 2712 in 32ms cpu (35ms real) (84750 rewrites/second)
+result OutEles: (none).OutEles
+
+reduce in META-VER : obsequiv(['ABADI], wrongConf, initConf) .
+
+reduce in META-VER : obsequiv(['ABADI], wrongConf, initConf) .
+rewrites: 3000 in 36ms cpu (37ms real) (83333 rewrites/second)
+result OutEle: {{t("ack"),t("M")},tt(7) === tt(6) + tt(3) + tt(4) and (tt(7) >=
+    (0/1).Real and (tt(7) >= tt(6) and (tt(6) >= (0/1).Real and (tt(3) === (
+    2/1).Real and (tt(4) === (1/1).Real and (tt(5) === (1/1).Real and
+    true)))))),tt(6),tt(7),dc(ns(0, 0), z(KB sk(p("I:0")))) dc(vs(0, 1), z(KB
+    sk(p("I:0"))))}
+
+reduce in META-VER : obsequiv(['ABADI], wrongConf, membershipConf) .
+
+reduce in META-VER : obsequiv(['ABADI], wrongConf, membershipConf) .
+rewrites: 4566 in 60ms cpu (60ms real) (76100 rewrites/second)
+result OutEles: (none).OutEles
+
+reduce in META-VER : obsequiv(['ABADI], membershipConf, wrongConf ) .
+
+reduce in META-VER : obsequiv(['ABADI], membershipConf, wrongConf) .
+rewrites: 5795 in 116ms cpu (116ms real) (49956 rewrites/second)
+result OutEle: {{t("ack"),t("M")},tt(7) === tt(6) + tt(3) + tt(4) + tt(5) and (
+    tt(7) >= (0/1).Real and (tt(7) >= tt(6) and (tt(6) >= (0/1).Real and (tt(3)
+    === (2/1).Real and (tt(4) === (1/1).Real and (tt(5) === (1/1).Real and
+    true)))))),tt(6),tt(7),dc(ns(0, 0), z(KB KA sk(p("I:0"))))}
+
+)
+

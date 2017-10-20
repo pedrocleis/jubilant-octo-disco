@@ -1,0 +1,95 @@
+***(
+load term
+load term-test
+load constraints
+)
+fmod CONSTRAINTS-TEST is
+  inc CONSTRAINTS .
+  inc TERM-TEST . 
+
+ops sM1 sM1i rM1  : -> T .
+eq sM1 = sbNS[M1] .
+eq sM1i = ((nv("A") := n(1,1))(pv("A") := p("A"))(pv("B") := p("I")))[M1] .
+eq rM1 = (pv("B") := p("B"))[M1] .
+
+
+ops ik0 ik1 ik2 : -> TS .
+eq ik0 = sk(p("I")) p("I") .
+eq ik1 = ik0 sbNS[M1] .
+eq ik2 = ik1 {vs(0,2),p("A")} .
+
+ops ds0 ds1 ds2 : -> DSet .
+eq ds0 = dc(ns(0,1),z(ik0)) .
+eq ds1 = ds0 dc(vs(0,2),z(ik1)) .
+eq ds2 = ds1 dc(vs(0,3), z(ik2) ) .
+endfm
+
+
+***( 
+sM2 = sbNS[M2]
+rM2 = sM2
+rM3 = sbNS[M3]
+)
+***(
+red sM1 .
+T: e({n(1, 1),p("A")}, pk(p("B")))
+
+red sM1i .
+T: e({n(1, 1),p("A")}, pk(p("I")))
+
+red rM1 .
+T: e({nv("A"),pv("A")}, pk(p("B")))
+
+
+red unconstrain(ds1,vs(0,2)) == ds0 .
+red unconstrain(ds1,vs(0,3)) == ds1 .
+
+red dsUpdate(ds1,vs(0,2), p("A")) == ds0.
+red dsUpdate(ds2,vs(0,2), sM1 ) .
+red dsUpdate(ds2,vs(0,2), p("A") ) .
+
+red findConstraint(ds1,vs(0,2),z(none)) == z(ik1) .
+red findConstraint(ds1,vs(0,3),z(none)) == z(none) .
+
+red refine(ds1, vs(0,2), z(p("X"))) .
+red refine(ds1, vs(0,3), z(ik2)) == ds2 .
+red refine(ds1, vs(0,2), z(ik1)) == ds1 .
+
+red skNames(ik1) == p("I") .
+red skNames(z(ik1)) == p("I") .
+red skNames(z(none)) == (none).TS .
+red skNames((none).TS) == (none).TS .
+
+red occCheck(vs(0,2), sM1) == false .
+red occCheck(vs(0,2), {vs(0,2),p("A")}) == true .
+
+)
+
+***(
+
+red genBndSym(0,0,pv("A"),mtS) .
+red genBndSym(0,0,v("A"),mtS) .
+
+red genFresh(0,0,  p("A"), mtS) .
+red genFresh(0,0, ps(0,0), mtS) .
+red genFresh(0,0, pv("A"), mtS) .
+red genFresh(0,0, {pv("A"),pv("A")}, mtS) .
+red genFresh(0,0, e({pv("A"),pv("A")},pk(pv("A"))),mtS) .
+
+
+red sGen(0,pv("A"),ik0,none) == {pv("A") := ps(0, 0),{mtSS,(none).DSet}} .
+red sGen(0,v("A"),ik0,none) == {v("A") := vs(0, 0),{mtSS,dc(vs(0, 0), p("I") sk(p("I")))}} .
+
+red sGen(0,e({nv("B"),p("A")},pk(p("B"))),ik0,none) == {nv("B") := ns(0, 0),{mtSS,dc(ns(0, 0), z(p("I") sk(p("I"))))}} .
+
+
+red sGen(0,e({nv("B"),p("A")},pk(p("B"))),ik1,none) == {nv("B") := ns(0, 0),{mtSS,dc(ns(0, 0), z(p("I") sk(p("I")) e({n(1, 1),p("A")}, pk(p("B")))))} {ns(0, 0) :~ n(1, 1),(none).DSet}} .
+
+
+red sGen(0,e({nv("B"),p("A")},pk(p("B"))),ik1 n(1,1),none) == {nv("B") := ns(0, 0),{mtSS,dc(ns(0, 0), z(p("I") sk(p("I"))     n(1, 1) e({n(1, 1),p("A")}, pk(p("B")))))} {ns(0, 0) :~ n(1, 1), (none).DSet}}
+
+red sGen(0,sk(p("A")),ik0,none) == {mtS,(none).CSet} .
+
+)
+
+
