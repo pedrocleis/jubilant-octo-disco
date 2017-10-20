@@ -1,0 +1,116 @@
+Prerequisites
+=============
+
+Maude requires following the tools:
+
+GNU gcc		http://gcc.gnu.org/
+GNU bison	http://www.gnu.org/software/bison/
+GNU flex	http://www.gnu.org/software/flex/
+
+It is recommended that you use the latest versions of bison and flex
+since Maude is known to tickle bugs in certain older versions. You
+should use gcc 3.1 or later as there are code generation issues with
+the 3.0.* series.
+
+Maude requires the following packages:
+
+GNU gmp		http://www.swox.com/gmp/
+GNU libsigsegv	http://libsigsegv.sourceforge.net/
+Tecla		http://www.astro.caltech.edu/~mcs/tecla/
+BuDDY		http://sourceforge.net/projects/buddy
+CVC4 (optional)	http://cvc4.cs.nyu.edu/web/
+
+
+Configuring the 3rd party packages
+==================================
+Because of C++ ABI incompatibilities, GNU gmp, BuDDy and CVC4 must be
+compiled with the same compiler you will use for Maude.
+
+GNU gmp	must be configured with --enable-cxx to generate the C++
+bindings. The option --disable-shared is recommended to avoid linking
+issues on various platforms.
+
+It is recommended that Tecla be configured with CFLAGS set to
+"-O2 -D_POSIX_C_SOURCE=1". This has the effect of using the thread
+unsafe library calls which avoids binary compatibility issues on
+various platforms. It is recommended that Tecla is built and installed
+with the command:
+
+ make TARGETS=normal TARGET_LIBS=static install
+
+to avoid linking issues on various platforms.
+
+As of 2.4 BuDDy has moved to autoconf. The option --disable-shared is
+recommended to avoid linking issues on various platforms.
+
+
+Building Maude
+==============
+If everything is installed in standard places you can configure and
+build Maude with the commands:
+
+./configure
+make
+
+If you don't have CVC4 you can pass --with-cvc4=no to configure. This
+disables the experimental rewriting modulo SMT feature, and produces
+a much smaller binary (CVC4 is much larger than Maude).
+
+A very basic test suite can be run using the command:
+
+make check
+
+If you installed any of the 3rd party packages in non-standard places
+you can indicate where the header files are by setting CPPFLAGS and
+where the library files by setting LDFLAGS. If you have multiple
+versions of any these libraries in your environment you can select
+particular versions explicitly by setting:
+
+GMP_LIBS	(defaults to -lgmpxx -lgmp)
+LIBSIGSEGV_LIB	(defaults to -lsigsegv)
+TECLA_LIBS	(defaults to -ltecla -lcurses)
+BUDDY_LIB	(defaults to -lbuddy)
+CVC4_LIB	(defaults to -lcvc4)
+
+A more realistic configure to make, check and install a static binary
+using a separate build tree might look something like:
+
+mkdir Build
+cd Build
+
+../configure \
+CPPFLAGS="-I/home/me/include" \
+LDFLAGS="-static -L/home/me/lib" \
+GMP_LIBS="/home/me/lib/libgmpxx.a /home/me/lib/libgmp.a"
+
+make
+make check
+make install
+
+The maude binary is installed in $(bindir) and the .maude files are
+installed in $(datadir). In order for the Maude binary to find the
+.maude files you should set the environment variable MAUDE_LIB to
+point to $(datadir). Alternatively you could move the .maude files to
+$(bindir).
+
+
+Note for Mac users
+==================
+
+As of Mavericks, Apple no longer supports gcc so Maude must be compiled with clang.
+The easiest way is to install the Mac Ports version of each of
+the needed tools and libraries. With Mac Ports installed in /opt/local
+I use the configuration line:
+
+../configure \
+CC=cc \
+CXX=c++ \
+FLEX=/opt/local/bin/flex \
+BISON=/opt/local/bin/bison \
+CFLAGS="-Wall -O2 -I/opt/local/include -fno-stack-protector -fstrict-aliasing" \
+CXXFLAGS="-Wall -O2 -I/opt/local/include -fno-stack-protector -fstrict-aliasing" \
+BUDDY_LIB="/opt/local/lib/libbdd.a" \
+TECLA_LIBS="/opt/local/lib/libtecla.a /usr/lib/libncurses.dylib" \
+LIBSIGSEGV_LIB="/opt/local/lib/libsigsegv.a" \
+GMP_LIBS="/opt/local/lib/libgmp.a /opt/local/lib/libgmpxx.a" \
+CVC4_LIB="/opt/local/lib/libcvc4.a"
